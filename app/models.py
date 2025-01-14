@@ -9,24 +9,25 @@ from sqlalchemy import Index
 from sqlalchemy import JSON
 
 
-class Category(Base):
+class Categories(Base):
     __tablename__ = "categories"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     name = Column(String, unique=True, nullable=False)
+    description = Column(String)
+    is_deleted = Column(Boolean, default=False, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
-    is_deleted = Column(Boolean, default=False, nullable=False)
     updated_by = Column(Integer)
     created_by = Column(Integer)
 
-    products = relationship("Product", back_populates="category")
+    product = relationship("Products", back_populates="category")
 
 
-class Product(Base):
+class Products(Base):
     __tablename__ = "products"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     name = Column(String, nullable=False)
     description = Column(String)
     price = Column(Float, nullable=False)
@@ -38,38 +39,47 @@ class Product(Base):
     updated_by = Column(Integer)
     created_by = Column(Integer)
 
-    category_id = Column(Integer, ForeignKey("categories.id"))
-    category = relationship("Category", back_populates="products")
-    order_items = relationship("OrderItem", back_populates="product")
-    stock_movements = relationship("StockMovement", back_populates="product", cascade="all, delete-orphan")
+    category_id = Column(Integer, ForeignKey("categories.id", ondelete="CASCADE"))
+    category = relationship("Categories", back_populates="product")
+    order_item = relationship("OrderItems", back_populates="product")
+    stock_movement = relationship("StockMovements", back_populates="product", cascade="all, delete-orphan")
 
 
-class User(Base):
+class Users(Base):
     __tablename__ = "users"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     username = Column(String, unique=True, nullable=False)
+    first_name = Column(String, nullable=False)
+    last_name = Column(String, nullable=False)
     email = Column(String, unique=True, nullable=False)
+    phone = Column(String, nullable=False)
     hashed_password = Column(String, nullable=False)
     is_active = Column(Boolean, default=True, nullable=False)
-    role_id = Column(Integer, ForeignKey("roles.id"), nullable=False)
+    role_id = Column(Integer, ForeignKey("roles.id", ondelete="CASCADE"), nullable=False)
     is_deleted = Column(Boolean, default=False, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     created_by = Column(Integer)
     updated_by = Column(Integer)
 
-    orders = relationship("Order", back_populates="user")
-    audit_logs = relationship("AuditLog", back_populates="user")
-    reports = relationship("Report", back_populates="generated_by_user", cascade="all, delete-orphan")
-    notifications = relationship("Notification", back_populates="user", cascade="all, delete-orphan")
-    stock_movements = relationship("StockMovement", back_populates="created_by_user", cascade="all, delete-orphan")
+    order = relationship("Orders", back_populates="user")
+    audit_log = relationship("AuditLogs", back_populates="user")
+    report = relationship("Reports", back_populates="generated_by_user", cascade="all, delete-orphan")
+    notification = relationship("Notifications", back_populates="user", cascade="all, delete-orphan")
+    role = relationship("Roles", back_populates="user")
+    # stock_movement = relationship("StockMovements", back_populates="created_by_user", cascade="all, delete-orphan")
+    stock_movement = relationship(
+        "StockMovements",
+        back_populates="user",
+        primaryjoin="Users.id == StockMovements.user_id"
+    )
 
 
-class Role(Base):
+class Roles(Base):
     __tablename__ = "roles"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     name = Column(String, unique=True, nullable=False)
     description = Column(String)
     is_deleted = Column(Boolean, default=False, nullable=False)
@@ -78,17 +88,17 @@ class Role(Base):
     created_by = Column(Integer)
     updated_by = Column(Integer)
 
-    # Relation avec User
-    users = relationship("User", back_populates="role")
+    # Relation avec Users
+    user = relationship("Users", back_populates="role")
 
-    # Relation avec Permission
-    permissions = relationship("Permission", back_populates="role")
+    # Relation avec Permissions
+    permission = relationship("Permissions", back_populates="role")
 
 
-class Permission(Base):
+class Permissions(Base):
     __tablename__ = "permissions"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     name = Column(String, unique=True, nullable=False)
     is_deleted = Column(Boolean, default=False, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
@@ -96,18 +106,18 @@ class Permission(Base):
     created_by = Column(Integer)
     updated_by = Column(Integer)
 
-    # Relation avec Role
-    role_id = Column(Integer, ForeignKey("roles.id"))
-    role = relationship("Role", back_populates="permissions")
+    # Relation avec Roles
+    role_id = Column(Integer, ForeignKey("roles.id", ondelete="CASCADE"))
+    role = relationship("Roles", back_populates="permission")
 
 
-class AuditLog(Base):
+class AuditLogs(Base):
     __tablename__ = "audit_logs"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     action = Column(String, unique=True, nullable=False)
     timestamp = Column(DateTime, default=datetime.utcnow)
-    user_id = Column(Integer, ForeignKey("users.id"))
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
     details = Column(String)  # Détails généraux de l'action
     ip_address = Column(String)  # IP de l'utilisateur
     endpoint = Column(String)  # Nom de l'endpoint ou méthode appelée
@@ -118,8 +128,8 @@ class AuditLog(Base):
     created_by = Column(Integer)
     updated_by = Column(Integer)
 
-    # Relation avec User
-    user = relationship("User", back_populates="audit_logs")
+    # Relation avec Users
+    user = relationship("Users", back_populates="audit_log")
 
     # Indexation sur `user_id` et `action`
     __table_args__ = (
@@ -128,30 +138,30 @@ class AuditLog(Base):
     )
 
 
-class Order(Base):
+class Orders(Base):
     __tablename__ = "orders"
 
-    id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"))
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
     is_deleted = Column(Boolean, default=False, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     created_by = Column(Integer)
     updated_by = Column(Integer)
 
-    # Relation avec User
-    user = relationship("User", back_populates="orders")
+    # Relation avec Users
+    user = relationship("Users", back_populates="order")
 
-    # Relation avec OrderItem
-    items = relationship("OrderItem", back_populates="order")
+    # Relation avec OrderItems
+    order_item = relationship("OrderItems", back_populates="order")
 
 
-class OrderItem(Base):
+class OrderItems(Base):
     __tablename__ = "order_items"
 
-    id = Column(Integer, primary_key=True, index=True)
-    order_id = Column(Integer, ForeignKey("orders.id"))
-    product_id = Column(Integer, ForeignKey("products.id"))
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    order_id = Column(Integer, ForeignKey("orders.id", ondelete="CASCADE"))
+    product_id = Column(Integer, ForeignKey("products.id", ondelete="CASCADE"))
     quantity = Column(Integer, nullable=False)
     price_per_unit = Column(Float, nullable=False)
     is_deleted = Column(Boolean, default=False, nullable=False)
@@ -160,21 +170,21 @@ class OrderItem(Base):
     created_by = Column(Integer)
     updated_by = Column(Integer)
 
-    # Relation avec Order
-    order = relationship("Order", back_populates="items")
+    # Relation avec Orders
+    order = relationship("Orders", back_populates="order_item")
 
-    # Relation avec Product
-    product = relationship("Product", back_populates="order_items")
+    # Relation avec Products
+    product = relationship("Products", back_populates="order_item")
 
 
-class Report(Base):
+class Reports(Base):
     __tablename__ = "reports"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     title = Column(String, nullable=False)
     description = Column(String, nullable=True)
     generated_at = Column(DateTime, default=datetime.utcnow)
-    generated_by = Column(Integer, ForeignKey("users.id"))
+    generated_by = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
     is_deleted = Column(Boolean, default=False, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
@@ -182,16 +192,16 @@ class Report(Base):
     updated_by = Column(Integer)
 
     # Relation avec l'utilisateur qui a généré le rapport
-    generated_by_user = relationship("User", back_populates="reports")
+    generated_by_user = relationship("Users", back_populates="report")
 
 
-class Notification(Base):
+class Notifications(Base):
     __tablename__ = "notifications"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     message = Column(String, nullable=False)
     is_read = Column(Boolean, default=False)
-    user_id = Column(Integer, ForeignKey("users.id"))
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
     notification_type = Column(Enum(NotificationType), nullable=False,
                                default=NotificationType.INFO)  # Nouveau champ pour le type de notification
     is_deleted = Column(Boolean, default=False, nullable=False)
@@ -201,7 +211,7 @@ class Notification(Base):
     updated_by = Column(Integer)
 
     # Relation avec l'utilisateur
-    user = relationship("User", back_populates="notifications")
+    user = relationship("Users", back_populates="notification")
 
     # Indexation sur `user_id` et `notification_type`
     __table_args__ = (
@@ -210,11 +220,12 @@ class Notification(Base):
     )
 
 
-class StockMovement(Base):
+class StockMovements(Base):
     __tablename__ = "stock_movements"
 
-    id = Column(Integer, primary_key=True, index=True)
-    product_id = Column(Integer, ForeignKey("products.id"))
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    product_id = Column(Integer, ForeignKey("products.id", ondelete="CASCADE"))
+    user_id = Column(Integer, ForeignKey('users.id', ondelete="CASCADE"), nullable=False)
     quantity = Column(Float, nullable=False)
     movement_type = Column(Enum(MovementType), nullable=False)
     is_deleted = Column(Boolean, default=False, nullable=False)
@@ -224,12 +235,12 @@ class StockMovement(Base):
     updated_by = Column(Integer)
 
     # Relations
-    product = relationship("Product", back_populates="stock_movements")
-    created_by_user = relationship("User", back_populates="stock_movements")
+    product = relationship("Products", back_populates="stock_movement")
+    user = relationship("Users", back_populates="stock_movement")
 
 
 # Ajouter un index sur les colonnes 'user_id' et 'product_id'
-Index('idx_user_id', User.id)  # Exemple sur le modèle User
-Index('idx_product_id', Product.id)  # Exemple sur le modèle Product
-Index('idx_user_id_notifications', Notification.user_id)  # Exemple sur le modèle Notification
-Index('idx_product_id_stock_movements', StockMovement.product_id)  # Exemple sur le modèle StockMovement
+Index('idx_user_id', Users.id)  # Exemple sur le modèle Users
+Index('idx_product_id', Products.id)  # Exemple sur le modèle Products
+# Index('idx_user_id_notifications', Notifications.user_id)  # Exemple sur le modèle Notifications
+Index('idx_product_id_stock_movements', StockMovements.product_id)  # Exemple sur le modèle StockMovements
