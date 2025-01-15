@@ -1,9 +1,9 @@
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator, validator
 
-from app.utils import OrderStatus, NotificationType
+from app.models import Roles
 
 
 # Category Schemas
@@ -23,50 +23,44 @@ class CategoryUpdate(CategoryBase):
 
 class CategoryRead(CategoryBase):
     id: int
-    name: str
-    description: Optional[str] = None
 
     class Config:
         from_attributes = True
 
 
-#
-# # Product Schemas
-# class ProductBase(BaseModel):
-#     name: str = Field(min_length=3, max_length=100)
-#     description: str = Field(min_length=3, max_length=100)
-#     price: float = Field(gt=0)
-#     quantity: int = Field(gt=0)
-#     stock_minimum: Optional[int] = Field(gt=0)
-#     is_deleted: bool = False
-#     created_at: datetime = Field(default_factory=datetime.utcnow)
-#     updated_at: datetime = Field(default_factory=datetime.utcnow)
-#     updated_by: Optional[str] = None
-#     created_by: Optional[str] = None
-#
-#
-# class ProductCreate(ProductBase):
-#     pass
-#
-#
-# class ProductUpdate(ProductBase):
-#     name: Optional[str] = None
-#     description: Optional[str] = None
-#     price: Optional[float] = None
-#     quantity: Optional[int] = None
-#     stock_minimum: Optional[int] = None
-#     is_deleted: Optional[bool] = None
-#     updated_at: Optional[datetime] = Field(default_factory=datetime.utcnow)
-#
-#
-# class ProductRead(ProductBase):
-#     id: int
-#     category_id: Optional[int]
-#
-#     class Config:
-#         from_attributes = True
-#
-#
+#  Product Schemas
+class ProductBase(BaseModel):
+    name: str = Field(min_length=3, max_length=100)
+    description: str = Field(min_length=3, max_length=100)
+    price: float = Field(gt=0)
+    quantity: int = Field(gt=0)
+    stock_minimum: Optional[int] = Field(gt=0)
+    category_id: Optional[int] = None
+    is_deleted: bool = False
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
+
+
+class ProductCreate(ProductBase):
+    pass
+
+
+class ProductUpdate(ProductBase):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    price: Optional[float] = None
+    quantity: Optional[int] = None
+    stock_minimum: Optional[int] = None
+
+
+class ProductRead(ProductBase):
+    id: int
+    category_id: Optional[int]
+
+    class Config:
+        from_attributes = True
+
+
 # User Schemas
 
 class UserBase(BaseModel):
@@ -75,7 +69,7 @@ class UserBase(BaseModel):
     username: str
     first_name: str
     last_name: str
-    phone_number: str
+    phone: str
     password: str
     is_active: Optional[bool] = True
     role_id: Optional[int] = None
@@ -100,6 +94,26 @@ class UserRead(UserBase):
 
     class Config:
         from_attributes = True
+
+
+class UserResponse(BaseModel):
+    id: int
+    username: str
+    email: str
+    first_name: str
+    last_name: str
+    role: str
+
+    class Config:
+        from_attributes = True
+
+    # Utilisation du validateur de champ
+    @validator('role', pre=True, always=True)
+    def set_role_name(cls, v, values):
+        # Si 'role' est un objet de type 'Roles', on le transforme en son nom
+        if isinstance(v, Roles):
+            return v.name  # Remplace l'objet Role par son nom
+        return v  # Si
 
 
 class UserVerification(BaseModel):

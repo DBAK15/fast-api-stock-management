@@ -1,15 +1,14 @@
-from fastapi import APIRouter, Depends, HTTPException, Path
-from starlette import status
-from pydantic import BaseModel, Field
-from sqlalchemy.orm import Session
-from ..models import Users
-from ..database import SessionLocal
-from sqlalchemy.orm import Session
 from typing import Annotated
-from .auth import get_current_user
-from passlib.context import CryptContext
 
-from ..schemas import UserVerification
+from fastapi import APIRouter, Depends, HTTPException
+from passlib.context import CryptContext
+from sqlalchemy.orm import Session
+from starlette import status
+
+from .auth import get_current_user
+from ..database import SessionLocal
+from ..models import Users
+from ..schemas import UserVerification, UserRead, UserResponse
 
 router = APIRouter(
     prefix="/user",
@@ -30,18 +29,18 @@ user_dependency = Annotated[dict, Depends(get_current_user)]
 bcrypt_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
-@router.get('/', status_code=status.HTTP_200_OK)
+@router.get('/', status_code=status.HTTP_200_OK, response_model=UserResponse)
 async def get_user(user: user_dependency, db: db_dependency):
     if user is None:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication failed.")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authorization failed")
+    print(f"user_info: {user}")
     return db.query(Users).filter(Users.id == user.get('id')).first()
-
 
 @router.put('/password', status_code=status.HTTP_204_NO_CONTENT)
 async def change_password(user: user_dependency, db: db_dependency,
                           user_verification: UserVerification):
     if user is None:
-        raise HTTPException(status_code=401, detail="Authentication failed.")
+        raise HTTPException(status_code=401, detail="Authorization failed")
     user_model = db.query(Users).filter(Users.id == user.get('id')).first()
 
     # if user_model is None:
@@ -58,7 +57,7 @@ async def change_password(user: user_dependency, db: db_dependency,
 @router.put('/phonenumber/{phone_number}',status_code=status.HTTP_204_NO_CONTENT)
 async def change_phone_number(user: user_dependency, db: db_dependency, phone: str):
     if user is None:
-        raise HTTPException(status_code=401, detail="Authentication failed.")
+        raise HTTPException(status_code=401, detail="Authorization failed")
     user_model = db.query(Users).filter(Users.id == user.get('id')).first()
     user_model.phone = phone
     db.add(user_model)

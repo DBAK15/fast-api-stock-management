@@ -6,6 +6,7 @@ from starlette import status
 from app.models import Categories
 from pydantic import BaseModel, Field
 from app.database import SessionLocal
+from app.routers.auth import get_current_user
 from app.schemas import CategoryCreate, CategoryUpdate, CategoryRead
 from datetime import datetime
 
@@ -24,6 +25,7 @@ def get_db():
 
 
 db_dependency = Annotated[Session, Depends(get_db)]
+user_dependency = Annotated[dict, Depends(get_current_user)]
 
 
 class CategoryRequest(BaseModel):
@@ -35,13 +37,19 @@ class CategoryRequest(BaseModel):
 
 
 @router.get("/", status_code=status.HTTP_200_OK)
-async def read_all(db: db_dependency):
-    return db.query(Categories).all()
+async def read_all(user: user_dependency, db: db_dependency):
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authorization failed")
+    return db.query(Categories).filter(Categories.is_deleted == False).all()
 
 
 @router.get("/category/{category_id}", status_code=status.HTTP_200_OK, response_model=CategoryRead)
-async def read_category(db: db_dependency, category_id: int = Path(gt=0)):
-    category_model = db.query(Categories).filter(Categories.id == category_id).first()
+async def read_category(user: user_dependency, db: db_dependency, category_id: int = Path(gt=0)):
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                            detail="Authorization failed")
+    category_model = db.query(Categories).filter(Categories.id == category_id).filter(
+        Categories.is_deleted == False).first()
 
     if category_model is not None:
         return category_model
@@ -49,30 +57,54 @@ async def read_category(db: db_dependency, category_id: int = Path(gt=0)):
 
 
 @router.post("/category", status_code=status.HTTP_201_CREATED, response_model=CategoryRead)
-async def create_category(db: db_dependency, category_request: CategoryCreate):
-    category_model = Categories(**category_request.dict())
+async def create_category(user: user_dependency, db: db_dependency, category_request: CategoryCreate):
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authorization failed")
+
+    existing_category = db.query(Categories).filter(Categories.name == category_request.name).first()
+    if existing_category:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                            detail=f"Category {category_request.name} already exists.")
+    category_model = Categories(**category_request.dict(), created_by=user.get('id'))
 
     db.add(category_model)
     db.commit()
+    return CategoryRead.from_orm(category_model)
 
 
 @router.put("/category/{category_id}", status_code=status.HTTP_200_OK, response_model=CategoryRead)
-async def update_category(db: db_dependency, category_request: CategoryUpdate, category_id: int = Path(gt=0)):
-    category_model = db.query(Categories).filter(Categories.id == category_id).first()
+async def update_category(user: user_dependency, db: db_dependency, category_request: CategoryUpdate,
+                          category_id: int = Path(gt=0)):
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authorization failed")
+
+    category_model = db.query(Categories).filter(Categories.id == category_id).filter(
+        Categories.is_deleted == False).first()
 
     if category_model is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Category not found")
 
-    category_model.name = category_request.name
-    category_model.description = category_request.description
+    # Mise à jour des champs non vides
+    if category_request.name:
+        category_model.name = category_request.name
+    if category_request.description:
+        category_model.description = category_request.description
+    if category_request.name or category_request.description:
+        category_model.updated_by = user.get('id')
 
     db.add(category_model)
     db.commit()
 
+    return CategoryRead.from_orm(category_model)
+
 
 @router.delete("/category/{category_id}", status_code=status.HTTP_200_OK)
-async def delete_category(db: db_dependency, category_id: int = Path(gt=0)):
-    category_model = db.query(Categories).filter(Categories.id == category_id).first()
+async def delete_category(user: user_dependency, db: db_dependency, category_id: int = Path(gt=0)):
+    if user is None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authorization failed")
+
+    category_model = db.query(Categories).filter(Categories.id == category_id).filter(
+        Categories.is_deleted == False).first()
     if category_model is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Category not found")
     category_model.is_deleted = True

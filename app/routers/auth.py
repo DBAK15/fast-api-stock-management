@@ -35,6 +35,7 @@ bcrypt_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_bearer = OAuth2PasswordBearer(tokenUrl="auth/token")
 logger = logging.getLogger(__name__)
 
+
 def get_db():
     db = SessionLocal()
     try:
@@ -77,20 +78,20 @@ async def get_current_user(token: Annotated[str, Depends(oauth2_bearer)]):
 
 ### Endpoints ###
 @router.post("/users", status_code=status.HTTP_201_CREATED)
-async def create_user(db: db_dependency, create_user: UserCreate):
-    existing_user = db.query(Users).filter(Users.username == create_user.username).first()
+async def create_user(db: db_dependency, user_request: UserCreate):
+    existing_user = db.query(Users).filter(Users.username == user_request.username).first()
     if existing_user:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Username already exists")
 
     create_user_model = Users(
-        username=create_user.username,
-        email=create_user.email,
-        first_name=create_user.first_name,
-        last_name=create_user.last_name,
-        role_id=create_user.role_id,
-        hashed_password=bcrypt_context.hash(create_user.password),
+        username=user_request.username,
+        email=user_request.email,
+        first_name=user_request.first_name,
+        last_name=user_request.last_name,
+        role_id=user_request.role_id,
+        hashed_password=bcrypt_context.hash(user_request.password),
         is_active=True,
-        phone=create_user.phone,
+        phone=user_request.phone,
     )
     try:
         db.add(create_user_model)
@@ -116,4 +117,3 @@ async def login_for_access_token(form_data: Annotated[OAuth2PasswordRequestForm,
     )
 
     return {'access_token': token, 'token_type': 'bearer'}
-
