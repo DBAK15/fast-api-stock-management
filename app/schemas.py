@@ -1,9 +1,10 @@
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 
-from pydantic import BaseModel, Field, model_validator, validator
+from pydantic import BaseModel, Field, model_validator, validator, root_validator
 
 from app.models import Roles
+from app.utils import OrderStatus, DeliveryStatus
 
 
 # Category Schemas
@@ -34,11 +35,11 @@ class ProductBase(BaseModel):
     description: str = Field(min_length=3, max_length=100)
     price: float = Field(gt=0)
     quantity: int = Field(gt=0)
-    stock_minimum: Optional[int] = Field(gt=0)
+    stock_minimum: int = Field(gt=0)
     category_id: Optional[int] = None
     is_deleted: bool = False
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    # created_at: datetime = Field(default_factory=datetime.utcnow)
+    # updated_at: datetime = Field(default_factory=datetime.utcnow)
 
 
 class ProductCreate(ProductBase):
@@ -66,7 +67,6 @@ class ProductRead(ProductBase):
 class UserBase(BaseModel):
     username: str = Field(min_length=3, max_length=100)
     email: str
-    username: str
     first_name: str
     last_name: str
     phone: str
@@ -112,8 +112,8 @@ class UserResponse(BaseModel):
     def set_role_name(cls, v, values):
         # Si 'role' est un objet de type 'Roles', on le transforme en son nom
         if isinstance(v, Roles):
-            return v.name  # Remplace l'objet Role par son nom
-        return v  # Si
+            return v.name
+        return v
 
 
 class UserVerification(BaseModel):
@@ -150,6 +150,7 @@ class RoleRead(RoleBase):
     class Config:
         from_attributes = True
 
+
 # # Permissions Schemas
 #
 # class PermissionBase(BaseModel):
@@ -171,56 +172,95 @@ class RoleRead(RoleBase):
 #
 #     class Config:
 #         from_attributes = True
-#
-#
-# # Order Schemas
-#
-# class OrderBase(BaseModel):
-#     customer_name: str
-#     status: OrderStatus = OrderStatus.PENDING  # Statut par défaut
-#
-#
-# class OrderCreate(OrderBase):
-#     pass
-#
-#
-# class OrderUpdate(BaseModel):
-#     customer_name: Optional[str] = None
-#     status: Optional[str] = None
-#
-#
+
+
+# OrderItem Schemas
+
+class OrderItemBase(BaseModel):
+    product_id: int
+    quantity: int
+    price_per_unit: float
+
+
+class OrderItemCreate(OrderItemBase):
+    pass
+
+
+class OrderCreate(BaseModel):
+    items: List[OrderItemCreate]
+
+
+class OrderItemUpdate(BaseModel):
+    quantity: Optional[int] = None
+    price_per_unit: Optional[float] = None
+
+
+class OrderItemRead(OrderItemBase):
+    id: int
+    order_id: Optional[int]
+
+    class Config:
+        from_attributes = True  # Cela permet de convertir les objets SQLAlchemy en modèles Pydantic
+
+
+# Delivery Schemas
+class DeliveryBase(BaseModel):
+    delivery_address: str
+    delivery_status: DeliveryStatus = DeliveryStatus.PENDING
+
+
+class DeliveryCreate(DeliveryBase):
+    order_id: int
+
+
+class DeliveryUpdate(BaseModel):
+    delivery_address: Optional[str] = None
+    delivery_status: Optional[DeliveryStatus] = None
+
+
+class DeliveryRead(DeliveryBase):
+    id: int
+    order_id: int
+
+    class Config:
+        from_attributes = True
+
+
+# Order Schemas
+
+class OrderBase(BaseModel):
+    user_id: int
+    status: OrderStatus = OrderStatus.PENDING  # Statut par défaut
+
+
+class OrderUpdate(BaseModel):
+    status: Optional[OrderStatus] = None
+    total_price: Optional[float] = None
+
+
 # class OrderRead(OrderBase):
 #     id: int
-#     created_at: Optional[str] = None
+#     order_number: str
+#     created_at: datetime
+#     total_price: float
+#     items: Optional[List["OrderItemRead"]] = None  # Liste d'items de commande
+#     delivery: Optional["DeliveryRead"] = None  # Livraison (un seul objet)
 #
 #     class Config:
 #         from_attributes = True
-#
-#
-# # OrderItem Schemas
-#
-# class OrderItemBase(BaseModel):
-#     product_id: int
-#     quantity: int
-#
-#
-# class OrderItemCreate(OrderItemBase):
-#     pass
-#
-#
-# class OrderItemUpdate(BaseModel):
-#     product_id: Optional[int] = None
-#     quantity: Optional[int] = None
-#
-#
-# class OrderItemRead(OrderItemBase):
-#     id: int
-#     order_id: int
-#
-#     class Config:
-#         from_attributes = True
-#
-#
+
+class OrderRead(OrderBase):
+    id: int
+    order_number: str
+    status: OrderStatus
+    created_at: datetime
+    total_price: float
+    items: List[OrderItemRead] = []
+    delivery: Optional[DeliveryRead] = None
+
+    class Config:
+        from_attributes = True
+
 # # Report Schemas
 #
 # class ReportBase(BaseModel):
