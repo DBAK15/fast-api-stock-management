@@ -93,11 +93,11 @@ async def update_product(product_request: ProductUpdate, db: db_dependency, user
     # Mise à jour des champs non vides
     if product_request.name:
         product_model.name = product_request.name
-    if product_request.price:
+    if product_request.price and product_request.price <= 0:
         product_model.price = product_request.price
     if product_request.stock_minimum:
         product_model.stock_minimum = product_request.stock_minimum
-    if product_request.quantity:
+    if product_request.quantity and product_request.quantity <= 0:
         product_model.quantity = product_request.quantity
     if product_request.description:
         product_model.description = product_request.description

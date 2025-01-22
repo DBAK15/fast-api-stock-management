@@ -1,8 +1,8 @@
 """Initial migration
 
-Revision ID: 3668d734aa1a
+Revision ID: b93e7f8b86c8
 Revises: 
-Create Date: 2025-01-15 11:25:39.504340
+Create Date: 2025-01-20 10:23:52.384183
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '3668d734aa1a'
+revision: str = 'b93e7f8b86c8'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -121,6 +121,7 @@ def upgrade() -> None:
     op.create_index('idx_action_auditlog', 'audit_logs', ['action'], unique=False)
     op.create_index('idx_user_id_auditlog', 'audit_logs', ['user_id'], unique=False)
     op.create_index(op.f('ix_audit_logs_id'), 'audit_logs', ['id'], unique=False)
+    op.create_index(op.f('ix_audit_logs_user_id'), 'audit_logs', ['user_id'], unique=False)
     op.create_table('notifications',
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('message', sa.String(), nullable=False),
@@ -138,18 +139,24 @@ def upgrade() -> None:
     op.create_index('idx_notification_type', 'notifications', ['notification_type'], unique=False)
     op.create_index('idx_user_id_notifications', 'notifications', ['user_id'], unique=False)
     op.create_index(op.f('ix_notifications_id'), 'notifications', ['id'], unique=False)
+    op.create_index(op.f('ix_notifications_user_id'), 'notifications', ['user_id'], unique=False)
     op.create_table('orders',
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
+    sa.Column('order_number', sa.String(length=20), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=True),
+    sa.Column('total_price', sa.Float(), nullable=False),
+    sa.Column('status', sa.String(length=50), nullable=False),
     sa.Column('is_deleted', sa.Boolean(), nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=True),
     sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=True),
     sa.Column('created_by', sa.Integer(), nullable=True),
     sa.Column('updated_by', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['user_id'], ['users.id'], ondelete='CASCADE'),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('order_number')
     )
     op.create_index(op.f('ix_orders_id'), 'orders', ['id'], unique=False)
+    op.create_index(op.f('ix_orders_user_id'), 'orders', ['user_id'], unique=False)
     op.create_table('reports',
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('title', sa.String(), nullable=False),
@@ -182,12 +189,28 @@ def upgrade() -> None:
     )
     op.create_index('idx_product_id_stock_movements', 'stock_movements', ['product_id'], unique=False)
     op.create_index(op.f('ix_stock_movements_id'), 'stock_movements', ['id'], unique=False)
+    op.create_table('deliveries',
+    sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
+    sa.Column('order_id', sa.Integer(), nullable=True),
+    sa.Column('delivery_address', sa.String(length=255), nullable=False),
+    sa.Column('delivery_status', sa.Enum('PENDING', 'DELIVERED', 'CANCELED', 'IN_PROGRESS', name='deliverystatus'), nullable=False),
+    sa.Column('is_deleted', sa.Boolean(), nullable=False),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=True),
+    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=True),
+    sa.Column('created_by', sa.Integer(), nullable=True),
+    sa.Column('updated_by', sa.Integer(), nullable=True),
+    sa.ForeignKeyConstraint(['order_id'], ['orders.id'], ondelete='CASCADE'),
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('order_id', name='uq_order_delivery')
+    )
+    op.create_index(op.f('ix_deliveries_id'), 'deliveries', ['id'], unique=False)
+    op.create_index(op.f('ix_deliveries_order_id'), 'deliveries', ['order_id'], unique=False)
     op.create_table('order_items',
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('order_id', sa.Integer(), nullable=True),
     sa.Column('product_id', sa.Integer(), nullable=True),
     sa.Column('quantity', sa.Integer(), nullable=False),
-    sa.Column('price_per_unit', sa.Float(), nullable=False),
+    sa.Column('price_per_unit', sa.DECIMAL(precision=10, scale=2), nullable=False),
     sa.Column('is_deleted', sa.Boolean(), nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=True),
     sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=True),
@@ -198,24 +221,32 @@ def upgrade() -> None:
     sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_order_items_id'), 'order_items', ['id'], unique=False)
+    op.create_index(op.f('ix_order_items_order_id'), 'order_items', ['order_id'], unique=False)
     # ### end Alembic commands ###
 
 
 def downgrade() -> None:
     # ### commands auto generated by Alembic - please adjust! ###
+    op.drop_index(op.f('ix_order_items_order_id'), table_name='order_items')
     op.drop_index(op.f('ix_order_items_id'), table_name='order_items')
     op.drop_table('order_items')
+    op.drop_index(op.f('ix_deliveries_order_id'), table_name='deliveries')
+    op.drop_index(op.f('ix_deliveries_id'), table_name='deliveries')
+    op.drop_table('deliveries')
     op.drop_index(op.f('ix_stock_movements_id'), table_name='stock_movements')
     op.drop_index('idx_product_id_stock_movements', table_name='stock_movements')
     op.drop_table('stock_movements')
     op.drop_index(op.f('ix_reports_id'), table_name='reports')
     op.drop_table('reports')
+    op.drop_index(op.f('ix_orders_user_id'), table_name='orders')
     op.drop_index(op.f('ix_orders_id'), table_name='orders')
     op.drop_table('orders')
+    op.drop_index(op.f('ix_notifications_user_id'), table_name='notifications')
     op.drop_index(op.f('ix_notifications_id'), table_name='notifications')
     op.drop_index('idx_user_id_notifications', table_name='notifications')
     op.drop_index('idx_notification_type', table_name='notifications')
     op.drop_table('notifications')
+    op.drop_index(op.f('ix_audit_logs_user_id'), table_name='audit_logs')
     op.drop_index(op.f('ix_audit_logs_id'), table_name='audit_logs')
     op.drop_index('idx_user_id_auditlog', table_name='audit_logs')
     op.drop_index('idx_action_auditlog', table_name='audit_logs')

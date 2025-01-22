@@ -28,14 +28,7 @@ db_dependency = Annotated[Session, Depends(get_db)]
 user_dependency = Annotated[dict, Depends(get_current_user)]
 
 
-class CategoryRequest(BaseModel):
-    name: str = Field(min_length=3, max_length=100)
-    description: str = Field(min_length=3, max_length=100)
-
-    class Config:
-        from_attributes = True
-
-
+## Endpoints ##
 @router.get("/", status_code=status.HTTP_200_OK)
 async def read_all(user: user_dependency, db: db_dependency):
     if user is None:
@@ -103,8 +96,7 @@ async def delete_category(user: user_dependency, db: db_dependency, category_id:
     if user is None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authorization failed")
 
-    category_model = db.query(Categories).filter(Categories.id == category_id).filter(
-        Categories.is_deleted == False).first()
+    category_model = db.query(Categories).filter(Categories.id == category_id).first()
     if category_model is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Category not found")
     category_model.is_deleted = True
