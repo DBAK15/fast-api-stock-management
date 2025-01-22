@@ -78,8 +78,6 @@ async def create_delivery(
         delivery_model = Deliveries(**delivery_data)
         db.add(delivery_model)
         db.commit()
-        db.refresh(delivery_model)  # Refresh to get any database-generated values
-
         return DeliveryRead.from_orm(delivery_model)
 
     except Exception as e:

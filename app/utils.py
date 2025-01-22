@@ -1,8 +1,6 @@
 from enum import Enum
 from enum import Enum as PyEnum
 
-from sqlalchemy import Column, DateTime, Boolean, func
-
 
 class OrderStatus(str, Enum):
     PENDING = "PENDING"

@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional, List
 
-from pydantic import BaseModel, Field, model_validator, validator, root_validator
+from pydantic import BaseModel, Field, model_validator, validator, root_validator, EmailStr
 
 from app.models import Roles
 from app.utils import OrderStatus, DeliveryStatus
@@ -66,7 +66,7 @@ class ProductRead(ProductBase):
 
 class UserBase(BaseModel):
     username: str = Field(min_length=3, max_length=100)
-    email: str
+    email: EmailStr
     first_name: str
     last_name: str
     phone: str
@@ -81,7 +81,7 @@ class UserCreate(UserBase):
 
 class UserUpdate(UserBase):
     username: Optional[str] = None
-    email: Optional[str] = None
+    email: Optional[EmailStr] = None
     first_name: Optional[str] = None
     last_name: Optional[str] = None
     phone: Optional[str] = None
@@ -99,7 +99,7 @@ class UserRead(UserBase):
 class UserResponse(BaseModel):
     id: int
     username: str
-    email: str
+    email: EmailStr
     first_name: str
     last_name: str
     role: str
@@ -151,27 +151,27 @@ class RoleRead(RoleBase):
         from_attributes = True
 
 
-# # Permissions Schemas
-#
-# class PermissionBase(BaseModel):
-#     name: str
-#     description: Optional[str] = None
-#
-#
-# class PermissionCreate(PermissionBase):
-#     pass
-#
-#
-# class PermissionUpdate(PermissionBase):
-#     name: Optional[str] = None
-#     description: Optional[str] = None
-#
-#
-# class PermissionRead(PermissionBase):
-#     id: int
-#
-#     class Config:
-#         from_attributes = True
+# Permissions Schemas
+
+class PermissionBase(BaseModel):
+    name: str
+    description: Optional[str] = None
+
+
+class PermissionCreate(PermissionBase):
+    pass
+
+
+class PermissionUpdate(PermissionBase):
+    name: Optional[str] = None
+    description: Optional[str] = None
+
+
+class PermissionRead(PermissionBase):
+    id: int
+
+    class Config:
+        from_attributes = True
 
 
 # OrderItem Schemas
@@ -213,7 +213,7 @@ class DeliveryCreate(DeliveryBase):
     order_id: int
 
 
-class DeliveryUpdate(BaseModel):
+class DeliveryUpdate(DeliveryBase):
     delivery_address: Optional[str] = None
     delivery_status: Optional[DeliveryStatus] = None
 
@@ -237,17 +237,6 @@ class OrderUpdate(BaseModel):
     status: Optional[OrderStatus] = None
     total_price: Optional[float] = None
 
-
-# class OrderRead(OrderBase):
-#     id: int
-#     order_number: str
-#     created_at: datetime
-#     total_price: float
-#     items: Optional[List["OrderItemRead"]] = None  # Liste d'items de commande
-#     delivery: Optional["DeliveryRead"] = None  # Livraison (un seul objet)
-#
-#     class Config:
-#         from_attributes = True
 
 class OrderRead(OrderBase):
     id: int

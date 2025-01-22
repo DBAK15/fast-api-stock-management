@@ -1,12 +1,13 @@
 from datetime import datetime
-from sqlalchemy.types import Enum
+
 from sqlalchemy import Column, Integer, String, Float, Boolean, DateTime, ForeignKey, DECIMAL, UniqueConstraint, event
+from sqlalchemy import Index
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
+from sqlalchemy.types import Enum
+
 from app.database import Base
 from app.utils import MovementType, NotificationType, DeliveryStatus, OrderStatus, generate_order_number
-from sqlalchemy import Index
-from sqlalchemy import JSON
 
 
 class Categories(Base):
@@ -48,6 +49,116 @@ class Products(Base):
         return f"<Products(name={self.name}, description={self.description})>"
 
 
+#
+# class Users(Base):
+#     __tablename__ = "users"
+#
+#     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+#     username = Column(String, unique=True, nullable=False)
+#     first_name = Column(String, nullable=False)
+#     last_name = Column(String, nullable=False)
+#     email = Column(String, unique=True, nullable=False)
+#     phone = Column(String, nullable=False)
+#     hashed_password = Column(String, nullable=False)
+#     is_active = Column(Boolean, default=True, nullable=False)
+#     # role_id = Column(Integer, ForeignKey("roles.id", ondelete="CASCADE"), nullable=False)
+#     is_deleted = Column(Boolean, default=False, nullable=False)
+#     created_at = Column(DateTime(timezone=True), server_default=func.now())
+#     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+#     created_by = Column(Integer)
+#     updated_by = Column(Integer)
+#
+#     order = relationship("Orders", back_populates="user")
+#     audit_log = relationship("AuditLogs", back_populates="user")
+#     report = relationship("Reports", back_populates="generated_by_user", cascade="all, delete-orphan")
+#     notification = relationship("Notifications", back_populates="user", cascade="all, delete-orphan")
+#     role = relationship("Roles", back_populates="user")
+#     # stock_movement = relationship("StockMovements", back_populates="created_by_user", cascade="all, delete-orphan")
+#     stock_movement = relationship(
+#         "StockMovements",
+#         back_populates="user",
+#         primaryjoin="Users.id == StockMovements.user_id"
+#     )
+#     user_roles = relationship("UserRoles", back_populates="user", cascade="all, delete-orphan")
+#
+#     @property
+#     def permissions(self):
+#         return {perm.name for role in self.user_roles for perm in role.role_permissions}
+#
+#
+# class UserRoles(Base):
+#     __tablename__ = "user_roles"
+#     __table_args__ = (
+#         UniqueConstraint('user_id', 'role_id', name='uq_user_role'),
+#     )
+#
+#     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+#     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+#     role_id = Column(Integer, ForeignKey("roles.id", ondelete="CASCADE"), nullable=False)
+#
+#     created_at = Column(DateTime(timezone=True), server_default=func.now())
+#     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+#
+#     # Relations
+#     user = relationship("Users", back_populates="user_roles")
+#     role = relationship("Roles", back_populates="user_roles")
+#
+#
+# class Roles(Base):
+#     __tablename__ = "roles"
+#
+#     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+#     name = Column(String, unique=True, nullable=False)
+#     description = Column(String)
+#     is_deleted = Column(Boolean, default=False, nullable=False)
+#     created_at = Column(DateTime(timezone=True), server_default=func.now())
+#     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+#     created_by = Column(Integer)
+#     updated_by = Column(Integer)
+#
+#     # Relation avec Users
+#     # user = relationship("Users", back_populates="role")
+#     user_roles = relationship("UserRoles", back_populates="role", cascade="all, delete-orphan")
+#     # Relation avec Permissions
+#     # permission = relationship("Permissions", back_populates="role", cascade="all, delete-orphan")
+#     role_permissions = relationship("RolePermissions", back_populates="role", cascade="all, delete-orphan")
+#
+#
+# class Permissions(Base):
+#     __tablename__ = "permissions"
+#
+#     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+#     name = Column(String, unique=True, nullable=False)
+#     description = Column(String, nullable=True)
+#     is_deleted = Column(Boolean, default=False, nullable=False)
+#     created_at = Column(DateTime(timezone=True), server_default=func.now())
+#     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+#     created_by = Column(Integer)
+#     updated_by = Column(Integer)
+#     # Relation avec Roles
+#     # role_id = Column(Integer, ForeignKey("roles.id", ondelete="CASCADE"))
+#     # role = relationship("Roles", back_populates="permission")
+#
+#     role_permissions = relationship("RolePermissions", back_populates="permission", cascade="all, delete-orphan")
+#
+#
+# class RolePermissions(Base):
+#     __tablename__ = "role_permissions"
+#     __table_args__ = (
+#         UniqueConstraint('role_id', 'permission_id', name='uq_role_permission')
+#     )
+#
+#     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+#     role_id = Column(Integer, ForeignKey("roles.id", ondelete="CASCADE"), nullable=False)
+#     permission_id = Column(Integer, ForeignKey("permissions.id", ondelete="CASCADE"), nullable=False)
+#
+#     created_at = Column(DateTime(timezone=True), server_default=func.now())
+#     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+#
+#     # Relations
+#     role = relationship("Roles", back_populates="role_permissions")
+#     permission = relationship("Permissions", back_populates="role_permissions")
+
 class Users(Base):
     __tablename__ = "users"
 
@@ -59,24 +170,29 @@ class Users(Base):
     phone = Column(String, nullable=False)
     hashed_password = Column(String, nullable=False)
     is_active = Column(Boolean, default=True, nullable=False)
-    role_id = Column(Integer, ForeignKey("roles.id", ondelete="CASCADE"), nullable=False)
     is_deleted = Column(Boolean, default=False, nullable=False)
+    role_id = Column(Integer, ForeignKey("roles.id", ondelete="SET NULL"), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     created_by = Column(Integer)
     updated_by = Column(Integer)
 
+    # Relations
+    role = relationship("Roles", back_populates="users")
+    audit_log = relationship('AuditLogs', back_populates='user')
     order = relationship("Orders", back_populates="user")
-    audit_log = relationship("AuditLogs", back_populates="user")
-    report = relationship("Reports", back_populates="generated_by_user", cascade="all, delete-orphan")
+    report = relationship("Reports", back_populates="generated_by_user")
     notification = relationship("Notifications", back_populates="user", cascade="all, delete-orphan")
-    role = relationship("Roles", back_populates="user")
-    # stock_movement = relationship("StockMovements", back_populates="created_by_user", cascade="all, delete-orphan")
     stock_movement = relationship(
-        "StockMovements",
-        back_populates="user",
-        primaryjoin="Users.id == StockMovements.user_id"
-    )
+            "StockMovements",
+            back_populates="user",
+            primaryjoin="Users.id == StockMovements.user_id"
+        )
+
+    @property
+    def permissions(self):
+        """Accès aux permissions de l'utilisateur via son rôle."""
+        return {perm.name for perm in self.role.role_permissions} if self.role else set()
 
 
 class Roles(Base):
@@ -91,11 +207,9 @@ class Roles(Base):
     created_by = Column(Integer)
     updated_by = Column(Integer)
 
-    # Relation avec Users
-    user = relationship("Users", back_populates="role")
-
-    # Relation avec Permissions
-    permission = relationship("Permissions", back_populates="role")
+    # Relations
+    users = relationship("Users", back_populates="role")
+    role_permissions = relationship("RolePermissions", back_populates="role", cascade="all, delete-orphan")
 
 
 class Permissions(Base):
@@ -103,15 +217,32 @@ class Permissions(Base):
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     name = Column(String, unique=True, nullable=False)
+    description = Column(String, nullable=True)
     is_deleted = Column(Boolean, default=False, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     created_by = Column(Integer)
     updated_by = Column(Integer)
 
-    # Relation avec Roles
-    role_id = Column(Integer, ForeignKey("roles.id", ondelete="CASCADE"))
-    role = relationship("Roles", back_populates="permission")
+    # Relations
+    role_permissions = relationship("RolePermissions", back_populates="permission", cascade="all, delete-orphan")
+
+
+class RolePermissions(Base):
+    __tablename__ = "role_permissions"
+    __table_args__ = (
+        UniqueConstraint('role_id', 'permission_id', name='uq_role_permission'),
+    )
+
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    role_id = Column(Integer, ForeignKey("roles.id", ondelete="CASCADE"), nullable=False)
+    permission_id = Column(Integer, ForeignKey("permissions.id", ondelete="CASCADE"), nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    # Relations
+    role = relationship("Roles", back_populates="role_permissions")
+    permission = relationship("Permissions", back_populates="role_permissions")
 
 
 class AuditLogs(Base):

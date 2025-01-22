@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from app.routers import categories, auth, roles, users, admin, products, orders, orderItems, deliveries
+from app.routers import categories, auth, roles, users, admin, products, orders, orderItems, deliveries, permissions
 from app.database import engine
 from app.models import Base
 
@@ -20,6 +20,7 @@ async def healthy():
 
 app.include_router(auth.router)
 app.include_router(roles.router)
+app.include_router(permissions.router)
 app.include_router(users.router)
 app.include_router(admin.router)
 app.include_router(auth.router)
