@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 import os
 import logging
 
-from ..models import Users, Roles
+from ..models import Users, Roles, Permissions, RolePermissions
 from ..schemas import Token, UserCreate
 
 router = APIRouter(
@@ -71,27 +71,22 @@ def create_access_token(
     if not role_obj:
         raise ValueError(f"Role '{role}' does not exist or is deleted.")
 
-    # Vérifier si des permissions sont associées au rôle
-    if not role_obj.role_permissions:
-        raise ValueError(f"Role '{role}' has no associated permissions.")
+    # Récupérer les permissions directement via la table RolePermissions
+    permissions = db.query(Permissions.name).join(RolePermissions).filter(RolePermissions.role_id == role_obj.id).all()
 
-    # Extraire les noms des permissions (en s'assurant que chaque permission existe)
-    permissions = []
-    for rp in role_obj.role_permissions:
-        if rp.permission and rp.permission.name:
-            permissions.append(rp.permission.name)
-        else:
-            logger.warning(f"Role '{role}' has an empty permission entry or invalid permission. Skipping.")
+    # Extraire les noms des permissions
+    permissions = {perm[0] for perm in permissions}
 
     if not permissions:
         raise ValueError(f"Role '{role}' has no valid permissions.")
+    print('permissions', permissions)
 
     # Construire le payload du JWT
     encode = {
         'sub': username,
         'id': user_id,
         'role': role,
-        'permissions': permissions,  # Ajouter les permissions au payload
+        'permissions': list(permissions),  # Ajouter les permissions au payload
         'exp': datetime.utcnow() + expires_delta
     }
 
@@ -149,12 +144,14 @@ async def create_user(db: db_dependency, user_request: UserCreate):
     try:
         db.add(create_user_model)
         db.commit()
+
         return {"message": "User created successfully"}
     except Exception as e:
         logger.error(f"Error creating user: {e}")
         db.rollback()
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                             detail="An error occurred while creating the user")
+
 
 
 @router.post("/token", response_model=Token)

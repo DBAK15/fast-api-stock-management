@@ -1,11 +1,22 @@
 from fastapi import FastAPI
-from app.routers import categories, auth, roles, users, admin, products, orders, orderItems, deliveries, permissions
+
 from app.database import engine
 from app.models import Base
+from app.routers import categories, auth, roles, users, admin, products, orders, orderItems, deliveries, permissions
+from .logger import logger
 
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI()
+logger.info('Starting StockManagement App')
+
+# app.middleware("http")(log_request_response)
+# app.add_middleware(log_request_response)
+# app.add_middleware(
+#     LoggingMiddleware,
+#     get_db=get_db,
+#     get_user=get_current_user,
+# )
 
 
 @app.get("/")
@@ -29,6 +40,4 @@ app.include_router(products.router)
 app.include_router(orders.router)
 app.include_router(orderItems.router)
 app.include_router(deliveries.router)
-
-
 

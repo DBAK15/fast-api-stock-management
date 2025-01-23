@@ -122,7 +122,7 @@ async def create_category(
     db.commit()
     db.refresh(category)
 
-    logger.info(f"Created category {category.id}")
+    logger.info(f"Created category {category.name}")
     return category
 
 
@@ -150,7 +150,7 @@ async def update_category(
     db.commit()
     db.refresh(category)
 
-    logger.info(f"Updated category {category.id}")
+    logger.info(f"Updated category {category.name}")
     return category
 
 
@@ -170,7 +170,7 @@ async def delete_category(
     category.updated_by = user.get('id')
     db.commit()
 
-    logger.info(f"Deleted category {category.id}")
+    logger.info(f"Deleted category {category.name}")
 
 # from typing import Annotated
 #

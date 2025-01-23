@@ -99,19 +99,21 @@ async def create_product(
     """
     verify_user(user)
 
-    product = Products(
-        name=product_request.name,
-        description=product_request.description,
-        price=product_request.price,
-        stock_quantity=product_request.stock_quantity,
-        created_by=user.get('id')
-    )
+    product = Products(**product_request.dict(), created_by=user.get('id'))
+
+    # product = Products(
+    #     name=product_request.name,
+    #     description=product_request.description,
+    #     price=product_request.price,
+    #     stock_quantity=product_request.stock_quantity,
+    #     created_by=user.get('id')
+    # )
 
     db.add(product)
     db.commit()
     db.refresh(product)
 
-    logger.info(f"Created product {product.id}")
+    logger.info(f"Created product {product.name}")
     return product
 
 

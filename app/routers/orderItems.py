@@ -90,7 +90,7 @@ def verify_order_ownership(db: Session, order_id: int, user_id: int):
 
 # Endpoints
 @router.get("/", response_model=List[OrderItemRead])
-async def read_all(
+async def read_all_orders_items(
         user: user_dependency,
         db: db_dependency,
         skip: int = Query(default=0, ge=0),

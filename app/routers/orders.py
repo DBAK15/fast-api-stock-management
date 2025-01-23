@@ -109,7 +109,7 @@ def calculate_order_total(db: Session, items: list, user_id: int):
 
 # Endpoints
 @router.get("/", response_model=List[OrderRead])
-async def read_all(
+async def read_all_orders(
         user: user_dependency,
         db: db_dependency,
         skip: int = Query(default=0, ge=0),
@@ -194,11 +194,14 @@ async def create_order(
     user_id = user.get('id')
 
     # Create order
-    order_model = Orders(
-        user_id=user_id,
-        status=OrderStatus.PENDING,
-        created_by=user_id
-    )
+    # order_model = Orders(
+    #     user_id=user_id,
+    #     status=OrderStatus.PENDING,
+    #     created_by=user_id
+    # )
+
+    order_model = Orders(**order_request.dict(), created_by=user_id)
+
     db.add(order_model)
     db.flush()  # Get order ID without committing
 

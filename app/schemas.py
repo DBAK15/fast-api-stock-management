@@ -4,7 +4,7 @@ from typing import Optional, List
 from pydantic import BaseModel, Field, model_validator, validator, root_validator, EmailStr
 
 from app.models import Roles
-from app.utils import OrderStatus, DeliveryStatus
+from app.utils import OrderStatus, DeliveryStatus, NotificationType
 
 
 # Category Schemas
@@ -151,6 +151,11 @@ class RoleRead(RoleBase):
         from_attributes = True
 
 
+class RolePermissionsRequest(BaseModel):
+    role_id: int
+    permission_ids: List[int]
+
+
 # Permissions Schemas
 
 class PermissionBase(BaseModel):
@@ -250,84 +255,102 @@ class OrderRead(OrderBase):
     class Config:
         from_attributes = True
 
-# # Report Schemas
-#
-# class ReportBase(BaseModel):
-#     title: str
-#     description: Optional[str] = None
-#
-#
-# class ReportCreate(ReportBase):
-#     pass
-#
-#
-# class ReportRead(ReportBase):
-#     id: int
-#     generated_at: datetime
-#     generated_by: Optional[int]
-#
-#     class Config:
-#         from_attributes = True
-#
-#
-# # Notifications Schemas
-#
-# class NotificationBase(BaseModel):
-#     message: str
-#     is_read: Optional[bool] = False
-#     notification_type: Optional[NotificationType] = NotificationType.INFO
-#
-#
-# class NotificationCreate(NotificationBase):
-#     pass
-#
-#
-# class NotificationRead(NotificationBase):
-#     id: int
-#     created_at: datetime
-#     user_id: Optional[int]
-#
-#     class Config:
-#         from_attributes = True
-#
-#
-# # Stock Movement Schemas
-#
-# class StockMovementBase(BaseModel):
-#     product_id: int
-#     quantity: float = Field(gt=0)
-#     movement_type: str  # IN or OUT
-#
-#
-# class StockMovementCreate(StockMovementBase):
-#     pass
-#
-#
-# class StockMovementRead(StockMovementBase):
-#     id: int
-#     created_at: datetime
-#     created_by: Optional[int]
-#
-#     class Config:
-#         from_attributes = True
-#
-#
-# # AuditLog Schema
-# class AuditLogBase(BaseModel):
-#     action: str
-#     user_id: int
-#     timestamp: datetime
-#     ip_address: Optional[str] = None
-#     endpoint: Optional[str] = None
-#     action_details: Optional[str] = None
-#
-#
-# class AuditLogCreate(AuditLogBase):
-#     pass
-#
-#
-# class AuditLogRead(AuditLogBase):
-#     id: int
-#
-#     class Config:
-#         from_attributes = True
+
+# Report Schemas
+
+class ReportBase(BaseModel):
+    title: str
+    description: Optional[str] = None
+
+
+class ReportCreate(ReportBase):
+    pass
+
+
+class ReportUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+
+
+class ReportRead(ReportBase):
+    id: int
+    generated_at: datetime
+    generated_by: Optional[int]
+
+    class Config:
+        from_attributes = True
+
+
+# Notifications Schemas
+
+class NotificationBase(BaseModel):
+    message: str
+    is_read: Optional[bool] = False
+    notification_type: Optional[NotificationType] = NotificationType.INFO
+
+
+class NotificationCreate(NotificationBase):
+    pass
+
+
+class NotificationUpdate(BaseModel):
+    message: Optional[str]
+    is_read: Optional[bool]
+    notification_type: Optional[NotificationType]
+
+
+class NotificationRead(NotificationBase):
+    id: int
+    created_at: datetime
+    user_id: Optional[int]
+
+    class Config:
+        from_attributes = True
+
+
+# Stock Movement Schemas
+
+class StockMovementBase(BaseModel):
+    product_id: int
+    quantity: float = Field(gt=0)
+    movement_type: str  # IN or OUT
+
+
+class StockMovementCreate(StockMovementBase):
+    pass
+
+
+class StockMovementUpdate(BaseModel):
+    quantity: Optional[float] = Field(gt=0)
+    movement_type: Optional[str]
+
+    class Config:
+        from_attributes = True
+
+
+class StockMovementRead(StockMovementBase):
+    id: int
+    created_at: datetime
+    created_by: Optional[int]
+
+    class Config:
+        from_attributes = True
+
+
+# AuditLog Schema
+class AuditLogBase(BaseModel):
+    action: str
+    user_id: int
+    description: Optional[str] = None
+    endpoint: Optional[str] = None
+
+
+class AuditLogCreate(AuditLogBase):
+    pass
+
+
+class AuditLogRead(AuditLogBase):
+    id: int
+
+    class Config:
+        from_attributes = True

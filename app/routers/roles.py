@@ -4,8 +4,8 @@ from typing import List, Annotated
 
 from .auth import get_current_user
 from ..database import SessionLocal
-from ..models import Roles
-from ..schemas import RoleCreate, RoleRead, RoleUpdate
+from ..models import Roles, Permissions, RolePermissions
+from ..schemas import RoleCreate, RoleRead, RoleUpdate, RolePermissionsRequest
 
 router = APIRouter(
     prefix="/roles",
@@ -42,7 +42,7 @@ def verify_user(user: dict) -> None:
 ### Endpoints ###
 
 @router.get("/", response_model=List[RoleRead])
-async def read_all(db: db_dependency, user: user_dependency):
+async def read_all_roles(db: db_dependency, user: user_dependency):
     """
     Récupérer la liste de tous les rôles non supprimés.
     """
@@ -83,6 +83,39 @@ async def create_role(role: RoleCreate, db: db_dependency, user: user_dependency
     return new_role
 
 
+@router.post("/role/add_permissions", status_code=status.HTTP_201_CREATED)
+async def add_permissions_to_role(assign_permissions_request: RolePermissionsRequest, db: db_dependency, user: user_dependency):
+    """
+    Assigner des permissions à un rôle spécifique.
+    """
+    verify_user(user)
+
+    # Récupérer le rôle
+    role = db.query(Roles).filter(Roles.id == assign_permissions_request.role_id, Roles.is_deleted == False).first()
+    if not role:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Role not found")
+
+    # Vérifier si les permissions existent et ne sont pas déjà associées à ce rôle
+    for perm_id in assign_permissions_request.permissions:
+        permission = db.query(Permissions).filter(Permissions.id == perm_id, Permissions.is_deleted == False).first()
+        if not permission:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Permission with ID {perm_id} not found")
+
+        # Vérifier si la permission est déjà associée au rôle
+        existing_role_permission = db.query(RolePermissions).filter(
+            RolePermissions.role_id == assign_permissions_request.role_id, RolePermissions.permission_id == perm_id
+        ).first()
+
+        if not existing_role_permission:
+            # Ajouter la permission au rôle
+            new_role_permission = RolePermissions(role_id=assign_permissions_request.role_id, permission_id=perm_id)
+            db.add(new_role_permission)
+
+    # Sauvegarder les changements dans la base de données
+    db.commit()
+    return {"message": "Permissions assigned successfully"}
+
+
 @router.put("/role/{role_id}", response_model=RoleRead)
 async def update_role(role_id: int, role_update: RoleUpdate, db: db_dependency, user: user_dependency):
     """
@@ -106,6 +139,44 @@ async def update_role(role_id: int, role_update: RoleUpdate, db: db_dependency, 
     return role
 
 
+@router.delete("/role/remove_permissions", status_code=status.HTTP_204_NO_CONTENT)
+async def remove_permissions_from_role(
+        remove_permissions_request: RolePermissionsRequest,  # Utiliser le schéma pour les permissions
+        db: db_dependency,
+        user: user_dependency
+):
+    """
+    Désassigner plusieurs permissions d'un rôle spécifique.
+    """
+    verify_user(user)
+
+    # Récupérer le rôle
+    role = db.query(Roles).filter(Roles.id == remove_permissions_request.role_id, Roles.is_deleted == False).first()
+    if not role:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Role not found")
+
+    # Vérifier si les permissions existent et sont assignées au rôle
+    for permission_id in remove_permissions_request.permission_ids:
+        permission = db.query(Permissions).filter(Permissions.id == permission_id,
+                                                  Permissions.is_deleted == False).first()
+        if not permission:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                                detail=f"Permission with ID {permission_id} not found")
+
+        # Vérifier si l'association existe
+        role_permission = db.query(RolePermissions).filter(
+            RolePermissions.role_id == remove_permissions_request.role_id, RolePermissions.permission_id == permission_id
+        ).first()
+
+        if role_permission:
+            # Supprimer l'association
+            role_permission.is_deleted = True
+
+    # Sauvegarder les changements dans la base de données
+    db.commit()
+
+    return {"message": f"Permissions removed from role {role.name}"}
+
 @router.delete("/role/{role_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_role(role_id: int, db: db_dependency, user: user_dependency):
     """
@@ -122,6 +193,9 @@ async def delete_role(role_id: int, db: db_dependency, user: user_dependency):
     # role.updated_by = user.get('id')  # Mettre à jour par l'utilisateur actuel
     db.commit()
     return {"message": "Role deleted successfully"}
+
+
+
 
 
 

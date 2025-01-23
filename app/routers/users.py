@@ -36,6 +36,7 @@ async def get_user(user: user_dependency, db: db_dependency):
     print(f"user_info: {user}")
     return db.query(Users).filter(Users.id == user.get('id')).first()
 
+
 @router.put('/password', status_code=status.HTTP_204_NO_CONTENT)
 async def change_password(user: user_dependency, db: db_dependency,
                           user_verification: UserVerification):
@@ -54,7 +55,7 @@ async def change_password(user: user_dependency, db: db_dependency,
     db.commit()
 
 
-@router.put('/phonenumber/{phone_number}',status_code=status.HTTP_204_NO_CONTENT)
+@router.put('/phonenumber/{phone_number}', status_code=status.HTTP_204_NO_CONTENT)
 async def change_phone_number(user: user_dependency, db: db_dependency, phone: str):
     if user is None:
         raise HTTPException(status_code=401, detail="Authorization failed")

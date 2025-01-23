@@ -59,7 +59,7 @@ def get_permission(db: Session, permission_id: int) -> Permissions:
 
 # Endpoints
 @router.get("/", response_model=List[PermissionRead])
-async def read_all(
+async def read_all_permissions(
         user: user_dependency,
         db: db_dependency,
         skip: int = Query(default=0, ge=0),

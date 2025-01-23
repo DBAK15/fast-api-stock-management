@@ -1,5 +1,5 @@
 from datetime import datetime
-
+import logging
 from sqlalchemy import Column, Integer, String, Float, Boolean, DateTime, ForeignKey, DECIMAL, UniqueConstraint, event
 from sqlalchemy import Index
 from sqlalchemy.orm import relationship
@@ -8,6 +8,9 @@ from sqlalchemy.types import Enum
 
 from app.database import Base
 from app.utils import MovementType, NotificationType, DeliveryStatus, OrderStatus, generate_order_number
+
+# Configure logging
+logger = logging.getLogger(__name__)
 
 
 class Categories(Base):
@@ -159,6 +162,7 @@ class Products(Base):
 #     role = relationship("Roles", back_populates="role_permissions")
 #     permission = relationship("Permissions", back_populates="role_permissions")
 
+
 class Users(Base):
     __tablename__ = "users"
 
@@ -184,15 +188,28 @@ class Users(Base):
     report = relationship("Reports", back_populates="generated_by_user")
     notification = relationship("Notifications", back_populates="user", cascade="all, delete-orphan")
     stock_movement = relationship(
-            "StockMovements",
-            back_populates="user",
-            primaryjoin="Users.id == StockMovements.user_id"
-        )
+        "StockMovements",
+        back_populates="user",
+        primaryjoin="Users.id == StockMovements.user_id"
+    )
 
     @property
     def permissions(self):
-        """Accès aux permissions de l'utilisateur via son rôle."""
-        return {perm.name for perm in self.role.role_permissions} if self.role else set()
+        """Accès aux permissions de l'utilisateur via son rôle en utilisant la table RolePermissions."""
+        if not self.role:
+            return set()
+
+        permissions = set()
+
+        # Effectuer une jointure entre RolePermissions et Permissions pour récupérer les noms de permissions
+        for rp in self.role.role_permissions:
+            permission = rp.permission
+            if permission and permission.name:
+                permissions.add(permission.name)
+            else:
+                logger.warning(f"Role '{self.role.name}' has an invalid permission entry (id: {rp.permission_id}).")
+
+        return permissions
 
 
 class Roles(Base):
@@ -211,6 +228,9 @@ class Roles(Base):
     users = relationship("Users", back_populates="role")
     role_permissions = relationship("RolePermissions", back_populates="role", cascade="all, delete-orphan")
 
+    def __repr__(self):
+        return f"<Roles(role_id={self.id}, name={self.name})>"
+
 
 class Permissions(Base):
     __tablename__ = "permissions"
@@ -226,6 +246,9 @@ class Permissions(Base):
 
     # Relations
     role_permissions = relationship("RolePermissions", back_populates="permission", cascade="all, delete-orphan")
+
+    def __repr__(self):
+        return f"<Permissions(name={self.name})>"
 
 
 class RolePermissions(Base):
@@ -244,18 +267,17 @@ class RolePermissions(Base):
     role = relationship("Roles", back_populates="role_permissions")
     permission = relationship("Permissions", back_populates="role_permissions")
 
+    def __repr__(self):
+        return f"<RolePermissions(role_id={self.id}, permission_id={self.permission_id})>"
+
 
 class AuditLogs(Base):
     __tablename__ = "audit_logs"
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     action = Column(String, unique=True, nullable=False)
-    timestamp = Column(DateTime, default=datetime.utcnow)
+    description = Column(String, nullable=True)
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), index=True)
-    details = Column(String)  # Détails généraux de l'action
-    ip_address = Column(String)  # IP de l'utilisateur
-    endpoint = Column(String)  # Nom de l'endpoint ou méthode appelée
-    action_details = Column(String, nullable=True)
     is_deleted = Column(Boolean, default=False, nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
