@@ -1,5 +1,5 @@
 from typing import Annotated, List
-
+import logging
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -7,11 +7,12 @@ from .auth import get_current_user
 from ..database import SessionLocal
 from ..models import Notifications
 from ..schemas import NotificationRead, NotificationCreate, NotificationUpdate
+from ..logging_config import setup_logger  # Import the setup_logger function
 
-router = APIRouter(
-    prefix="/notifications",
-    tags=["Notifications"],
-)
+# Configure logging
+logger = setup_logger("notificationManagementLogger")
+
+router = APIRouter()
 
 
 # Dépendance pour récupérer la session de la base de données
@@ -34,6 +35,7 @@ def verify_user(user: dict) -> None:
     Lève une exception HTTP 401 si ce n'est pas le cas.
     """
     if user is None:
+        logger.warning("Authorization failed: No user provided")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Authorization failed"
@@ -48,6 +50,7 @@ async def read_all_notifications(db: db_dependency, user: user_dependency):
     Récupérer la liste de toutes les notifications non supprimées.
     """
     verify_user(user)
+    logger.info(f"Fetching all notifications for user_id: {user.get('id')}")
     notifications = db.query(Notifications).filter(Notifications.is_deleted == False).all()
     return notifications
 
@@ -61,7 +64,9 @@ async def read_notification(notification_id: int, db: db_dependency, user: user_
     notification = db.query(Notifications).filter(Notifications.id == notification_id,
                                                   Notifications.is_deleted == False).first()
     if not notification:
+        logger.warning(f"Notification with ID {notification_id} not found")
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Notification not found")
+    logger.info(f"Retrieved notification {notification_id} for user_id: {user.get('id')}")
     return notification
 
 
@@ -75,6 +80,7 @@ async def create_notification(notification: NotificationCreate, db: db_dependenc
     db.add(new_notification)
     db.commit()
     db.refresh(new_notification)
+    logger.info(f"Created notification {new_notification.id} for user_id: {user.get('id')}")
     return new_notification
 
 
@@ -86,8 +92,9 @@ async def update_notification(notification_id: int, notification: NotificationUp
     """
     verify_user(user)
     existing_notification = db.query(Notifications).filter(Notifications.id == notification_id,
-                                                     Notifications.is_deleted == False).first()
+                                                           Notifications.is_deleted == False).first()
     if not existing_notification:
+        logger.warning(f"Notification with ID {notification_id} not found")
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Notification not found")
 
     for key, value in notification.dict(exclude_unset=True).items():
@@ -97,6 +104,7 @@ async def update_notification(notification_id: int, notification: NotificationUp
 
     db.commit()
     db.refresh(existing_notification)
+    logger.info(f"Updated notification {notification_id} for user_id: {user.get('id')}")
     return existing_notification
 
 
@@ -108,7 +116,9 @@ async def delete_notification(notification_id: int, db: db_dependency, user: use
     verify_user(user)
     db_notification = db.query(Notifications).filter(Notifications.id == notification_id).first()
     if not db_notification:
+        logger.warning(f"Notification with ID {notification_id} not found")
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Notification not found")
 
     db_notification.is_deleted = True
     db.commit()
+    logger.info(f"Deleted notification {notification_id} for user_id: {user.get('id')}")

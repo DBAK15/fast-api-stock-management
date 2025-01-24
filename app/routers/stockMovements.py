@@ -1,4 +1,5 @@
 from typing import List, Annotated
+import logging
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
@@ -7,11 +8,12 @@ from .auth import get_current_user
 from ..database import SessionLocal
 from ..models import StockMovements
 from ..schemas import StockMovementCreate, StockMovementRead, StockMovementUpdate
+from ..logging_config import setup_logger  # Import the setup_logger function
 
-router = APIRouter(
-    prefix="/stockMovements",
-    tags=["Stock Movements"],
-)
+# Configure logging
+logger = setup_logger("stockMovementLogger")
+
+router = APIRouter()
 
 
 # Dépendance pour récupérer la session de la base de données
@@ -34,6 +36,7 @@ def verify_user(user: dict) -> None:
     Lève une exception HTTP 401 si ce n'est pas le cas.
     """
     if user is None:
+        logger.warning("Authorization failed: No user provided")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Authorization failed"
@@ -48,6 +51,7 @@ async def read_all_stock_movements(db: db_dependency, user: user_dependency):
     Récupérer la liste de tous les mouvements de stock non supprimés.
     """
     verify_user(user)
+    logger.info(f"Fetching all stock movements for user_id: {user.get('id')}")
     movements = db.query(StockMovements).filter(StockMovements.is_deleted == False).all()
     return movements
 
@@ -62,7 +66,9 @@ async def read_stock_movement(stock_movements_id: int, db: db_dependency, user: 
         StockMovements.id == stock_movements_id, StockMovements.is_deleted == False
     ).first()
     if not movement:
+        logger.warning(f"Stock movement with ID {stock_movements_id} not found")
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="StockMovement not found")
+    logger.info(f"Retrieved stock movement {stock_movements_id} for user_id: {user.get('id')}")
     return movement
 
 
@@ -80,9 +86,11 @@ async def create_stock_movement(movement: StockMovementCreate, db: db_dependency
         db.add(new_movement)
         db.commit()
         db.refresh(new_movement)  # Récupérer l'objet mis à jour avec son ID généré
+        logger.info(f"Created stock movement {new_movement.id} for user_id: {user.get('id')}")
         return new_movement
-    except SQLAlchemyError:
+    except SQLAlchemyError as e:
         db.rollback()
+        logger.error(f"Failed to create stock movement: {e}")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Failed to create stock movement")
 
 
@@ -99,6 +107,7 @@ async def update_stock_movement(stock_movements_id: int, movement: StockMovement
                                                         StockMovements.is_deleted == False).first()
 
     if not existing_movement:
+        logger.warning(f"Stock movement with ID {stock_movements_id} not found")
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="StockMovement not found")
 
     # Mettre à jour les attributs du mouvement de stock
@@ -110,9 +119,11 @@ async def update_stock_movement(stock_movements_id: int, movement: StockMovement
     try:
         db.commit()
         db.refresh(existing_movement)
+        logger.info(f"Updated stock movement {stock_movements_id} for user_id: {user.get('id')}")
         return existing_movement
-    except SQLAlchemyError:
+    except SQLAlchemyError as e:
         db.rollback()
+        logger.error(f"Failed to update stock movement: {e}")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Failed to update stock movement")
 
 
@@ -127,13 +138,16 @@ async def delete_stock_movement(stock_movements_id: int, db: db_dependency, user
     movement = db.query(StockMovements).filter(StockMovements.id == stock_movements_id).first()
 
     if not movement:
+        logger.warning(f"Stock movement with ID {stock_movements_id} not found")
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="StockMovement not found")
 
     # Marquer le mouvement de stock comme supprimé
     movement.is_deleted = True
     try:
         db.commit()
+        logger.info(f"Deleted stock movement {stock_movements_id} for user_id: {user.get('id')}")
         return {"detail": "Stock movement deleted successfully"}
-    except SQLAlchemyError:
+    except SQLAlchemyError as e:
         db.rollback()
+        logger.error(f"Failed to delete stock movement: {e}")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Failed to delete stock movement")

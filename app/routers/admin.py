@@ -8,10 +8,7 @@ from .auth import get_current_user
 from ..database import SessionLocal
 from ..models import Categories
 
-router = APIRouter(
-    prefix="/admin",
-    tags=["Admin"]
-)
+router = APIRouter()
 
 
 def get_db():

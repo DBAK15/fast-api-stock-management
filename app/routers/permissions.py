@@ -9,14 +9,12 @@ from app.database import SessionLocal
 from app.models import Permissions
 from app.routers.auth import get_current_user
 from app.schemas import PermissionRead, PermissionCreate, PermissionUpdate
+from ..logging_config import setup_logger  # Import the setup_logger function
 
 # Configure logging
-logger = logging.getLogger(__name__)
+logger = setup_logger("permissionManagementLogger")
 
-router = APIRouter(
-    prefix="/permissions",
-    tags=["Permissions"],
-)
+router = APIRouter()
 
 
 # Dependencies
@@ -36,6 +34,7 @@ user_dependency = Annotated[dict, Depends(get_current_user)]
 def verify_user(user: dict) -> None:
     """Verify if user is authenticated."""
     if user is None:
+        logger.warning("Authorization failed: No user provided")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Authorization failed"
@@ -50,6 +49,7 @@ def get_permission(db: Session, permission_id: int) -> Permissions:
     ).first()
 
     if not permission:
+        logger.warning(f"Permission with ID {permission_id} not found")
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Permission not found"
@@ -69,6 +69,7 @@ async def read_all_permissions(
     Retrieve all permissions with pagination.
     """
     verify_user(user)
+    logger.info(f"Fetching all permissions for user_id: {user.get('id')}, skip={skip}, limit={limit}")
 
     permissions = db.query(Permissions) \
         .filter(Permissions.is_deleted == False) \
@@ -89,6 +90,7 @@ async def read_permission(
     Retrieve a specific permission by ID.
     """
     verify_user(user)
+    logger.info(f"Fetching permission with ID: {permission_id} for user_id: {user.get('id')}")
     return get_permission(db, permission_id)
 
 
@@ -109,6 +111,7 @@ async def create_permission(
     ).first()
 
     if existing_permission:
+        logger.warning(f"Permission '{permission_request.name}' already exists")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Permission '{permission_request.name}' already exists."
@@ -129,7 +132,6 @@ async def create_permission(
 
 @router.put("/permission/{permission_id}", response_model=PermissionRead, status_code=status.HTTP_200_OK)
 async def update_permission(
-
         permission_request: PermissionUpdate,
         user: user_dependency,
         db: db_dependency,

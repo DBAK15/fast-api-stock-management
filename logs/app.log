@@ -1,0 +1,18 @@
+2025-01-24 15:55:30 - stockManagementLogger - INFO - Starting StockManagement App
+2025-01-24 15:55:30 - stockManagementLogger - INFO - Application started
+2025-01-24 15:56:51 - stockManagementLogger - INFO - Starting StockManagement App
+2025-01-24 15:56:51 - stockManagementLogger - INFO - Application started
+2025-01-24 15:58:21 - stockManagementLogger - INFO - Starting StockManagement App
+2025-01-24 15:58:21 - stockManagementLogger - INFO - Application started
+2025-01-24 15:59:33 - stockManagementLogger - INFO - Starting StockManagement App
+2025-01-24 15:59:33 - stockManagementLogger - INFO - Application started
+2025-01-24 16:01:26 - authManagementLogger - INFO - Successful login for user: admin_user
+2025-01-24 16:01:26 - authManagementLogger - INFO - Role 'admin' has the following permissions: {'MANAGE_PERMISSIONS', 'CREATE_USERS', 'UPDATE_STOCKS', 'VIEW_REPORTS', 'EDIT_USERS', 'VALIDATE_ORDERS', 'VIEW_USERS', 'VIEW_STOCKS', 'DELETE_USERS'}
+2025-01-24 16:01:26 - authManagementLogger - INFO - Generated JWT token for user: admin_user
+2025-01-24 16:01:26 - authManagementLogger - INFO - Access token generated for user: admin_user
+2025-01-24 16:02:36 - authManagementLogger - INFO - Token decoded successfully for user: admin_user (ID: 1)
+2025-01-24 16:02:36 - roleManagementLogger - INFO - Authorization successful for user_id: 1
+2025-01-24 16:02:36 - roleManagementLogger - INFO - Fetched 5 roles
+2025-01-24 16:04:47 - authManagementLogger - INFO - Token decoded successfully for user: admin_user (ID: 1)
+2025-01-24 16:04:47 - roleManagementLogger - INFO - Authorization successful for user_id: 1
+2025-01-24 16:04:47 - roleManagementLogger - INFO - Updated role: viewer (ID: 5)
