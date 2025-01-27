@@ -10,11 +10,9 @@ from .middlewares import register_middleware
 version = "v1.0.0"
 
 description = """
-A REST API for a stock management application.
-
-This REST API is able to:
-    - 
-
+Une API REST conçue pour la gestion des stocks 
+avec des fonctionnalités telles que la gestion des utilisateurs, 
+des rôles, des produits, des commandes, et bien plus
 """
 version_prefix = f"/api/{version}"
 
@@ -64,7 +62,7 @@ app.include_router(auth.router, prefix=f"{version_prefix}/auth", tags=["Auth"])
 app.include_router(roles.router, prefix=f"{version_prefix}/roles", tags=["Roles"])
 app.include_router(permissions.router, prefix=f"{version_prefix}/permissions", tags=["Permissions"])
 app.include_router(users.router, prefix=f"{version_prefix}/users", tags=["Users"])
-app.include_router(admin.router, prefix=f"{version_prefix}/admin", tags=["Admin"])
+# app.include_router(admin.router, prefix=f"{version_prefix}/admin", tags=["Admin"])
 app.include_router(auth.router, prefix=f"{version_prefix}/auth", tags=["Auth"])
 app.include_router(categories.router, prefix=f"{version_prefix}/categories", tags=["Categories"])
 app.include_router(products.router, prefix=f"{version_prefix}/products", tags=["Products"])

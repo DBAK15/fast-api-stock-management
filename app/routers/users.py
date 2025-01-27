@@ -1,34 +1,29 @@
-from typing import Annotated
-import logging
-
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, HTTPException
 from passlib.context import CryptContext
-from sqlalchemy.orm import Session
 from starlette import status
 
-from .auth import get_current_user
-from ..database import SessionLocal
-from ..models import Users
-from ..schemas import UserVerification, UserRead, UserResponse
+from ..dependencies import user_dependency, db_dependency, bcrypt_context
 from ..logging_config import setup_logger  # Import the setup_logger function
+from ..models import Users
+from ..schemas import UserVerification, UserResponse
 
 # Configure logger
 logger = setup_logger("userManagementLogger")
 
 router = APIRouter()
-
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-
-db_dependency = Annotated[Session, Depends(get_db)]
-user_dependency = Annotated[dict, Depends(get_current_user)]
-bcrypt_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+#
+#
+# def get_db():
+#     db = SessionLocal()
+#     try:
+#         yield db
+#     finally:
+#         db.close()
+#
+#
+# db_dependency = Annotated[Session, Depends(get_db)]
+# user_dependency = Annotated[dict, Depends(get_current_user)]
+required_permissions = ["VIEW_USERS", "CREATE_USERS", "EDIT_USERS", "DELETE_USERS", "MANAGE_PERMISSIONS"]
 
 
 @router.get('/', status_code=status.HTTP_200_OK, response_model=UserResponse)

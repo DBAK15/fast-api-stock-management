@@ -1,17 +1,16 @@
+from datetime import datetime, timedelta
+from typing import Annotated
+
 from dotenv import load_dotenv
 from fastapi import APIRouter, Depends, HTTPException, status
-from pydantic import BaseModel
-from passlib.context import CryptContext
-from typing import Annotated
-from sqlalchemy.orm import Session
-from ..database import SessionLocal
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
 from jose import jwt, JWTError
-from datetime import datetime, timedelta
-import os
+from passlib.context import CryptContext
+
+from ..dependencies import SECRET_KEY, ALGORITHM, db_dependency, ACCESS_TOKEN_EXPIRE_MINUTES, bcrypt_context
+from ..logging_config import setup_logger  # Import the setup_logger function
 from ..models import Users, Roles, Permissions, RolePermissions
 from ..schemas import Token, UserCreate
-from ..logging_config import  setup_logger  # Import the setup_logger function
 
 # Configure logger
 logger = setup_logger("authManagementLogger")
@@ -21,26 +20,30 @@ router = APIRouter()
 # Charger les variables d'environnement
 load_dotenv()
 
-# Configuration depuis l'environnement
-SECRET_KEY = os.getenv("SECRET_KEY")
-ALGORITHM = os.getenv("ALGORITHM")
-ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 20))
+# # Configuration depuis l'environnement
+# SECRET_KEY = os.getenv("SECRET_KEY")
+# ALGORITHM = os.getenv("ALGORITHM")
+# ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 20))
 
 # Vérification des variables d'environnement
 if not SECRET_KEY or not ALGORITHM:
     raise ValueError("Missing essential environment variables (SECRET_KEY or ALGORITHM)")
 
-bcrypt_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-oauth2_bearer = OAuth2PasswordBearer(tokenUrl="auth/token")
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+# bcrypt_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+# oauth2_bearer = OAuth2PasswordBearer(tokenUrl="auth/token")
 
-db_dependency = Annotated[Session, Depends(get_db)]
+
+# def get_db():
+#     db = SessionLocal()
+#     try:
+#         yield db
+#     finally:
+#         db.close()
+#
+#
+# db_dependency = Annotated[Session, Depends(get_db)]
+
 
 ### Fonctions ###
 
@@ -54,6 +57,7 @@ def authenticate_user(username: str, password: str, db):
         return False
     logger.info(f"Successful login for user: {username}")
     return user
+
 
 def create_access_token(
         username: str,
@@ -97,33 +101,38 @@ def create_access_token(
         logger.error(f"Error encoding JWT: {e}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="JWT encoding error")
 
-# Decode JWT
-async def get_current_user(token: Annotated[str, Depends(oauth2_bearer)]):
-    try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username: str = payload.get('sub')
-        user_id: int = payload.get('id')
-        user_role: str = payload.get('role')
-        permissions: list = payload.get('permissions', [])
-        if not username or not user_id:
-            logger.warning(f"Invalid JWT token: missing username or user_id")
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail='Could not validate credentials'
-            )
-        logger.info(f"Token decoded successfully for user: {username} (ID: {user_id})")
-        return {
-            "id": user_id,
-            "username": username,
-            "user_role": user_role,
-            "permissions": permissions
-        }
-    except JWTError as e:
-        logger.error(f"JWT decoding failed: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail='Could not validate credentials'
-        )
+
+#
+# # Decode JWT
+# async def get_current_user(token: Annotated[str, Depends(oauth2_bearer)]):
+#     try:
+#         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+#         username: str = payload.get('sub')
+#         user_id: int = payload.get('id')
+#         user_role: str = payload.get('role')
+#         permissions: list = payload.get('permissions', [])
+#         if not username or not user_id:
+#             logger.warning(f"Invalid JWT token: missing username or user_id")
+#             print('not user')
+#             raise HTTPException(
+#                 status_code=status.HTTP_401_UNAUTHORIZED,
+#                 detail='Could not validate credentials 1'
+#             )
+#         logger.info(f"Token decoded successfully for user: {username} (ID: {user_id})")
+#         return {
+#             "id": user_id,
+#             "username": username,
+#             "user_role": user_role,
+#             "permissions": permissions
+#         }
+#     except JWTError as e:
+#         logger.error(f"JWT decoding failed: {e}")
+#         print('not token decoding')
+#         raise HTTPException(
+#             status_code=status.HTTP_401_UNAUTHORIZED,
+#             detail='Could not validate credentials 2'
+#         )
+#
 
 ### Endpoints ###
 
@@ -155,6 +164,7 @@ async def create_user(db: db_dependency, user_request: UserCreate):
         db.rollback()
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                             detail="An error occurred while creating the user")
+
 
 @router.post("/token", response_model=Token)
 async def login_for_access_token(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], db: db_dependency):

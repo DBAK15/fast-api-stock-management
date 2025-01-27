@@ -1,43 +1,54 @@
-from typing import Annotated, List
-import logging
-from fastapi import APIRouter, Depends, HTTPException, Path, Query
+from typing import List
+
+from fastapi import APIRouter, HTTPException, Path, Query
 from sqlalchemy.orm import Session
 from starlette import status
 
-from app.database import SessionLocal
 from app.models import OrderItems, Products, Orders
-from app.routers.auth import get_current_user
 from app.schemas import OrderItemRead, OrderItemCreate, OrderItemUpdate
+from ..dependencies import db_dependency, user_dependency
 from ..logging_config import setup_logger  # Import the setup_logger function
+from ..utils import check_permissions, verify_user
+
 
 # Configure logging
 logger = setup_logger("orderItemManagementLogger")
 
 router = APIRouter()
 
-
-# Dependencies
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-
-db_dependency = Annotated[Session, Depends(get_db)]
-user_dependency = Annotated[dict, Depends(get_current_user)]
+#
+# # Dependencies
+# def get_db():
+#     db = SessionLocal()
+#     try:
+#         yield db
+#     finally:
+#         db.close()
+#
+#
+# db_dependency = Annotated[Session, Depends(get_db)]
+# user_dependency = Annotated[dict, Depends(get_current_user)]
+required_permissions = [
+    "VIEW_ORDER_ITEMS",
+    "VIEW_ORDER_ITEM",
+    "VIEW_ORDER_ITEMS_BY_ORDER",
+    "CREATE_ORDER_ITEM",
+    "VERIFY_PRODUCT_STOCK",
+    "EDIT_ORDER_ITEM",
+    "DELETE_ORDER_ITEM",
+    "OWN_ORDER"
+]
 
 
 # Helper functions
-def verify_user(user: dict) -> None:
-    """Verify if user is authenticated."""
-    if user is None:
-        logger.warning("Authorization failed: No user provided")
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Authorization failed"
-        )
+# def verify_user(user: dict) -> None:
+#     """Verify if user is authenticated."""
+#     if user is None:
+#         logger.warning("Authorization failed: No user provided")
+#         raise HTTPException(
+#             status_code=status.HTTP_401_UNAUTHORIZED,
+#             detail="Authorization failed"
+#         )
 
 
 def get_order_item(db: Session, item_id: int):
@@ -103,6 +114,8 @@ async def read_all_orders_items(
     Retrieve all order items with pagination.
     """
     verify_user(user)
+    # Vérifier si l'utilisateur a les permissions requises
+    check_permissions(user, required_permissions)
     logger.info(f"Fetching all order items for user_id: {user.get('id')}, skip={skip}, limit={limit}")
 
     return db.query(OrderItems) \
@@ -122,6 +135,9 @@ async def read_order_item(
     Retrieve a specific order item by ID.
     """
     verify_user(user)
+    # Vérifier si l'utilisateur a les permissions requises
+    check_permissions(user, required_permissions)
+
     item = get_order_item(db, order_item_id)
     verify_order_ownership(db, item.order_id, user.get('id'))
 
@@ -141,6 +157,8 @@ async def read_all_by_order(
     Retrieve all items for a specific order with pagination.
     """
     verify_user(user)
+    # Vérifier si l'utilisateur a les permissions requises
+    check_permissions(user, required_permissions)
     verify_order_ownership(db, order_id, user.get('id'))
 
     logger.info(f"Fetching order items for order_id: {order_id}, skip={skip}, limit={limit}")
@@ -174,6 +192,8 @@ async def create_order_item(
     Create a new order item for a specific order.
     """
     verify_user(user)
+    # Vérifier si l'utilisateur a les permissions requises
+    check_permissions(user, required_permissions)
     verify_order_ownership(db, order_id, user.get('id'))
 
     # Verify product and get its price
@@ -215,6 +235,8 @@ async def update_order_item(
     Update an existing order item.
     """
     verify_user(user)
+    # Vérifier si l'utilisateur a les permissions requises
+    check_permissions(user, required_permissions)
     item = get_order_item(db, order_item_id)
     verify_order_ownership(db, item.order_id, user.get('id'))
 
@@ -254,6 +276,8 @@ async def delete_order_item(
     Soft delete an order item.
     """
     verify_user(user)
+    # Vérifier si l'utilisateur a les permissions requises
+    check_permissions(user, required_permissions)
     item = get_order_item(db, order_item_id)
     verify_order_ownership(db, item.order_id, user.get('id'))
 

@@ -1,14 +1,13 @@
-from typing import List, Annotated
-import logging
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from typing import List
+
+from fastapi import APIRouter, HTTPException, status
 from sqlalchemy.exc import SQLAlchemyError
 
-from .auth import get_current_user
-from ..database import SessionLocal
+from ..dependencies import db_dependency, user_dependency
+from ..logging_config import setup_logger  # Import the setup_logger function
 from ..models import StockMovements
 from ..schemas import StockMovementCreate, StockMovementRead, StockMovementUpdate
-from ..logging_config import setup_logger  # Import the setup_logger function
+from ..utils import check_permissions, verify_user
 
 # Configure logging
 logger = setup_logger("stockMovementLogger")
@@ -17,30 +16,31 @@ router = APIRouter()
 
 
 # Dépendance pour récupérer la session de la base de données
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-
-db_dependency = Annotated[Session, Depends(get_db)]
-user_dependency = Annotated[dict, Depends(get_current_user)]
+# def get_db():
+#     db = SessionLocal()
+#     try:
+#         yield db
+#     finally:
+#         db.close()
+#
+#
+# db_dependency = Annotated[Session, Depends(get_db)]
+# user_dependency = Annotated[dict, Depends(get_current_user)]
+required_permissions = ["VIEW_STOCKS", "UPDATE_STOCKS"]
 
 
 # Helper functions
-def verify_user(user: dict) -> None:
-    """
-    Vérifie si l'utilisateur est authentifié.
-    Lève une exception HTTP 401 si ce n'est pas le cas.
-    """
-    if user is None:
-        logger.warning("Authorization failed: No user provided")
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Authorization failed"
-        )
+# def verify_user(user: dict) -> None:
+#     """
+#     Vérifie si l'utilisateur est authentifié.
+#     Lève une exception HTTP 401 si ce n'est pas le cas.
+#     """
+#     if user is None:
+#         logger.warning("Authorization failed: No user provided")
+#         raise HTTPException(
+#             status_code=status.HTTP_401_UNAUTHORIZED,
+#             detail="Authorization failed"
+#         )
 
 
 ### Endpoints ###
@@ -51,6 +51,9 @@ async def read_all_stock_movements(db: db_dependency, user: user_dependency):
     Récupérer la liste de tous les mouvements de stock non supprimés.
     """
     verify_user(user)
+    # Vérifier si l'utilisateur a les permissions requises
+    check_permissions(user, required_permissions)
+
     logger.info(f"Fetching all stock movements for user_id: {user.get('id')}")
     movements = db.query(StockMovements).filter(StockMovements.is_deleted == False).all()
     return movements
@@ -62,6 +65,9 @@ async def read_stock_movement(stock_movements_id: int, db: db_dependency, user: 
     Récupérer un mouvement de stock spécifique par son ID.
     """
     verify_user(user)
+    # Vérifier si l'utilisateur a les permissions requises
+    check_permissions(user, required_permissions)
+
     movement = db.query(StockMovements).filter(
         StockMovements.id == stock_movements_id, StockMovements.is_deleted == False
     ).first()
@@ -78,6 +84,8 @@ async def create_stock_movement(movement: StockMovementCreate, db: db_dependency
     Créer un nouveau mouvement de stock.
     """
     verify_user(user)
+    # Vérifier si l'utilisateur a les permissions requises
+    check_permissions(user, required_permissions)
 
     # Créer un nouvel objet StockMovement à partir des données reçues
     new_movement = StockMovements(**movement.dict(), created_by=user.get('id'))
@@ -101,6 +109,8 @@ async def update_stock_movement(stock_movements_id: int, movement: StockMovement
     Mettre à jour un mouvement de stock existant par son ID.
     """
     verify_user(user)
+    # Vérifier si l'utilisateur a les permissions requises
+    check_permissions(user, required_permissions)
 
     # Récupérer le mouvement de stock
     existing_movement = db.query(StockMovements).filter(StockMovements.id == stock_movements_id,
@@ -133,6 +143,8 @@ async def delete_stock_movement(stock_movements_id: int, db: db_dependency, user
     Supprimer (marquer comme supprimé) un mouvement de stock par son ID.
     """
     verify_user(user)
+    # Vérifier si l'utilisateur a les permissions requises
+    check_permissions(user, required_permissions)
 
     # Récupérer le mouvement de stock
     movement = db.query(StockMovements).filter(StockMovements.id == stock_movements_id).first()

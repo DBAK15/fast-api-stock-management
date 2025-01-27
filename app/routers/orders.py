@@ -1,44 +1,44 @@
-from typing import Annotated, List
-import logging
-from fastapi import APIRouter, Depends, HTTPException, Path, Query
+from typing import List
+
+from fastapi import APIRouter, HTTPException, Path, Query
 from sqlalchemy.orm import Session, selectinload
 from starlette import status
 
-from app.database import SessionLocal
 from app.models import Orders, Products, OrderItems
-from app.routers.auth import get_current_user
 from app.schemas import OrderRead, OrderUpdate, OrderCreate
-from app.utils import OrderStatus
+from ..dependencies import db_dependency, user_dependency
 from ..logging_config import setup_logger  # Import the setup_logger function
+from ..utils import check_permissions, verify_user, OrderStatus
 
 # Configure logging
 logger = setup_logger("orderManagementLogger")
 
 router = APIRouter()
 
-
-# Dependencies
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-
-db_dependency = Annotated[Session, Depends(get_db)]
-user_dependency = Annotated[dict, Depends(get_current_user)]
+#
+# # Dependencies
+# def get_db():
+#     db = SessionLocal()
+#     try:
+#         yield db
+#     finally:
+#         db.close()
+#
+#
+# db_dependency = Annotated[Session, Depends(get_db)]
+# user_dependency = Annotated[dict, Depends(get_current_user)]
+required_permissions = ["VIEW_ORDERS", "CREATE_ORDERS", "EDIT_ORDERS", "DELETE_ORDERS", "VALIDATE_ORDERS"]
 
 
 # Helper functions
-def verify_user(user: dict) -> None:
-    """Verify if user is authenticated."""
-    if user is None:
-        logger.warning("Authorization failed: No user provided")
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Authorization failed"
-        )
+# def verify_user(user: dict) -> None:
+#     """Verify if user is authenticated."""
+#     if user is None:
+#         logger.warning("Authorization failed: No user provided")
+#         raise HTTPException(
+#             status_code=status.HTTP_401_UNAUTHORIZED,
+#             detail="Authorization failed"
+#         )
 
 
 def get_order_by_id(db: Session, order_id: int, include_relations: bool = True):
@@ -122,6 +122,9 @@ async def read_all_orders(
     Retrieve all orders with pagination.
     """
     verify_user(user)
+    # Vérifier si l'utilisateur a les permissions requises
+    check_permissions(user, required_permissions)
+
     logger.info(f"Fetching all orders for user_id: {user.get('id')}, skip={skip}, limit={limit}")
 
     orders = db.query(Orders) \
@@ -143,6 +146,9 @@ async def read_order(
     Retrieve a specific order by ID.
     """
     verify_user(user)
+    # Vérifier si l'utilisateur a les permissions requises
+    check_permissions(user, required_permissions)
+
     order = get_order_by_id(db, order_id)
     verify_order_ownership(order, user.get('id'))
 
@@ -163,6 +169,9 @@ async def read_all_by_user(
     Retrieve all orders for a specific user with optional status filter and pagination.
     """
     verify_user(user)
+    # Vérifier si l'utilisateur a les permissions requises
+    check_permissions(user, required_permissions)
+
     logger.info(f"Fetching orders for user_id: {user_id}, status: {status}, skip={skip}, limit={limit}")
 
     query = db.query(Orders) \
@@ -197,6 +206,9 @@ async def create_order(
     Create a new order with items.
     """
     verify_user(user)
+    # Vérifier si l'utilisateur a les permissions requises
+    check_permissions(user, required_permissions)
+
     user_id = user.get('id')
 
     # Create order
@@ -232,6 +244,9 @@ async def update_order(
     Update an existing order.
     """
     verify_user(user)
+    # Vérifier si l'utilisateur a les permissions requises
+    check_permissions(user, required_permissions)
+
     order_model = get_order_by_id(db, order_id, include_relations=False)
     verify_order_ownership(order_model, user.get('id'))
 
@@ -258,6 +273,9 @@ async def delete_order(
     Soft delete an order.
     """
     verify_user(user)
+    # Vérifier si l'utilisateur a les permissions requises
+    check_permissions(user, required_permissions)
+
     order_model = get_order_by_id(db, order_id, include_relations=False)
     verify_order_ownership(order_model, user.get('id'))
 

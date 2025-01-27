@@ -1,46 +1,47 @@
-import logging
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
-from typing import List, Annotated
+from fastapi import APIRouter, HTTPException, status
+from typing import List
 
-from .auth import get_current_user
-from ..database import SessionLocal
+from fastapi import APIRouter, HTTPException, status
+
+from ..dependencies import db_dependency, user_dependency
+from ..logging_config import setup_logger  # Import the setup_logger function
 from ..models import Roles, Permissions, RolePermissions
 from ..schemas import RoleCreate, RoleRead, RoleUpdate, RolePermissionsRequest
-from ..logging_config import setup_logger  # Import the setup_logger function
+from ..utils import check_permissions, verify_user
 
 # Configure logger
 logger = setup_logger("roleManagementLogger")
 
 router = APIRouter()
 
-
-# Dépendance pour récupérer la session de la base de données
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-
-db_dependency = Annotated[Session, Depends(get_db)]
-user_dependency = Annotated[dict, Depends(get_current_user)]
+#
+# # Dépendance pour récupérer la session de la base de données
+# def get_db():
+#     db = SessionLocal()
+#     try:
+#         yield db
+#     finally:
+#         db.close()
+#
+#
+# db_dependency = Annotated[Session, Depends(get_db)]
+# user_dependency = Annotated[dict, Depends(get_current_user)]
+required_permissions = ["VIEW_ROLES", "CREATE_ROLES", "EDIT_ROLES", "DELETE_ROLES"]
 
 
 # Helper functions
-def verify_user(user: dict) -> None:
-    """
-    Vérifie si l'utilisateur est authentifié.
-    Lève une exception HTTP 401 si ce n'est pas le cas.
-    """
-    if user is None:
-        logger.warning("Authorization failed: No user provided")
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Authorization failed"
-        )
-    logger.info(f"Authorization successful for user_id: {user.get('id')}")
+# def verify_user(user: dict) -> None:
+#     """
+#     Vérifie si l'utilisateur est authentifié.
+#     Lève une exception HTTP 401 si ce n'est pas le cas.
+#     """
+#     if user is None:
+#         logger.warning("Authorization failed: No user provided")
+#         raise HTTPException(
+#             status_code=status.HTTP_401_UNAUTHORIZED,
+#             detail="Authorization failed"
+#         )
+#     logger.info(f"Authorization successful for user_id: {user.get('id')}")
 
 
 ### Endpoints ###
@@ -51,6 +52,8 @@ async def read_all_roles(db: db_dependency, user: user_dependency):
     Récupérer la liste de tous les rôles non supprimés.
     """
     verify_user(user)
+    # Vérifier si l'utilisateur a les permissions requises
+    # check_permissions(user, required_permissions)
     roles = db.query(Roles).filter(Roles.is_deleted == False).all()
     logger.info(f"Fetched {len(roles)} roles")
     return roles
@@ -62,6 +65,8 @@ async def read_role(role_id: int, db: db_dependency, user: user_dependency):
     Récupérer un rôle spécifique par son ID.
     """
     verify_user(user)
+    # Vérifier si l'utilisateur a les permissions requises
+    check_permissions(user, required_permissions)
     role = db.query(Roles).filter(Roles.id == role_id, Roles.is_deleted == False).first()
     if not role:
         logger.warning(f"Role with ID {role_id} not found")
@@ -76,6 +81,8 @@ async def create_role(role: RoleCreate, db: db_dependency, user: user_dependency
     Créer un nouveau rôle.
     """
     verify_user(user)
+    # Vérifier si l'utilisateur a les permissions requises
+    check_permissions(user, required_permissions)
 
     # Vérifier si le rôle existe déjà
     existing_role = db.query(Roles).filter(Roles.name == role.name).first()
@@ -99,6 +106,8 @@ async def add_permissions_to_role(assign_permissions_request: RolePermissionsReq
     Assigner des permissions à un rôle spécifique.
     """
     verify_user(user)
+    # Vérifier si l'utilisateur a les permissions requises
+    check_permissions(user, required_permissions)
 
     # Récupérer le rôle
     role = db.query(Roles).filter(Roles.id == assign_permissions_request.role_id, Roles.is_deleted == False).first()
@@ -136,6 +145,8 @@ async def update_role(role_id: int, role_update: RoleUpdate, db: db_dependency, 
     Mettre à jour un rôle existant.
     """
     verify_user(user)
+    # Vérifier si l'utilisateur a les permissions requises
+    check_permissions(user, required_permissions)
 
     role = db.query(Roles).filter(Roles.id == role_id, Roles.is_deleted == False).first()
     if not role:
@@ -165,6 +176,8 @@ async def remove_permissions_from_role(
     Désassigner plusieurs permissions d'un rôle spécifique.
     """
     verify_user(user)
+    # Vérifier si l'utilisateur a les permissions requises
+    check_permissions(user, required_permissions)
 
     # Récupérer le rôle
     role = db.query(Roles).filter(Roles.id == remove_permissions_request.role_id, Roles.is_deleted == False).first()
@@ -204,6 +217,8 @@ async def delete_role(role_id: int, db: db_dependency, user: user_dependency):
     Supprimer un rôle (suppression logique).
     """
     verify_user(user)
+    # Vérifier si l'utilisateur a les permissions requises
+    check_permissions(user, required_permissions)
 
     role = db.query(Roles).filter(Roles.id == role_id, Roles.is_deleted == False).first()
     if not role:

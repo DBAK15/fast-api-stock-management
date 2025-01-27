@@ -1,6 +1,5 @@
 import logging
 import os
-from logging.handlers import TimedRotatingFileHandler
 
 
 def setup_logger(logger_name: str, log_file: str = "app.log", level=logging.INFO):
@@ -31,12 +30,9 @@ def setup_logger(logger_name: str, log_file: str = "app.log", level=logging.INFO
         datefmt='%Y-%m-%d %H:%M:%S'
     )
 
-    # File handler with daily rotation
-    file_handler = TimedRotatingFileHandler(
+    # File handler (sans rotation)
+    file_handler = logging.FileHandler(
         filename=os.path.join(log_directory, log_file),
-        when="midnight",  # Rotate at midnight
-        interval=1,
-        backupCount=7,  # Keep 7 log files
         encoding="utf-8"
     )
     file_handler.setFormatter(formatter)

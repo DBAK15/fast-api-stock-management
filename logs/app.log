@@ -16,3 +16,170 @@
 2025-01-24 16:04:47 - authManagementLogger - INFO - Token decoded successfully for user: admin_user (ID: 1)
 2025-01-24 16:04:47 - roleManagementLogger - INFO - Authorization successful for user_id: 1
 2025-01-24 16:04:47 - roleManagementLogger - INFO - Updated role: viewer (ID: 5)
+2025-01-24 16:27:05 - stockManagementLogger - INFO - Starting StockManagement App
+2025-01-24 16:27:05 - stockManagementLogger - INFO - Application started
+2025-01-24 16:29:14 - authManagementLogger - INFO - Successful login for user: admin_user
+2025-01-24 16:29:14 - authManagementLogger - INFO - Role 'admin' has the following permissions: {'DELETE_USERS', 'MANAGE_PERMISSIONS', 'EDIT_USERS', 'VIEW_USERS', 'VIEW_STOCKS', 'VIEW_REPORTS', 'CREATE_USERS', 'VALIDATE_ORDERS', 'UPDATE_STOCKS'}
+2025-01-24 16:29:14 - authManagementLogger - INFO - Generated JWT token for user: admin_user
+2025-01-24 16:29:14 - authManagementLogger - INFO - Access token generated for user: admin_user
+2025-01-24 16:29:24 - authManagementLogger - INFO - Token decoded successfully for user: admin_user (ID: 1)
+2025-01-24 16:29:24 - roleManagementLogger - INFO - Authorization successful for user_id: 1
+2025-01-24 16:29:24 - roleManagementLogger - INFO - Fetched 5 roles
+2025-01-24 16:33:02 - stockManagementLogger - INFO - Starting StockManagement App
+2025-01-24 16:33:02 - stockManagementLogger - INFO - Application started
+2025-01-24 16:33:19 - authManagementLogger - INFO - Successful login for user: admin_user
+2025-01-24 16:33:19 - authManagementLogger - INFO - Role 'admin' has the following permissions: {'UPDATE_STOCKS', 'DELETE_USERS', 'MANAGE_PERMISSIONS', 'VIEW_USERS', 'CREATE_USERS', 'EDIT_USERS', 'VIEW_STOCKS', 'VIEW_REPORTS', 'VALIDATE_ORDERS'}
+2025-01-24 16:33:19 - authManagementLogger - INFO - Generated JWT token for user: admin_user
+2025-01-24 16:33:19 - authManagementLogger - INFO - Access token generated for user: admin_user
+2025-01-24 16:33:24 - authManagementLogger - INFO - Token decoded successfully for user: admin_user (ID: 1)
+2025-01-24 16:33:24 - roleManagementLogger - INFO - Authorization successful for user_id: 1
+2025-01-24 16:33:24 - roleManagementLogger - INFO - Fetched 5 roles
+2025-01-24 16:34:24 - authManagementLogger - INFO - Token decoded successfully for user: admin_user (ID: 1)
+2025-01-24 16:34:24 - roleManagementLogger - INFO - Authorization successful for user_id: 1
+2025-01-24 16:34:24 - categoryManagementLogger - WARNING - Permission check failed for user admin_user. Missing permissions: ['CREATE_ROLES']
+2025-01-24 18:07:17 - stockManagementLogger - INFO - Starting StockManagement App
+2025-01-24 18:07:17 - stockManagementLogger - INFO - Application started
+2025-01-27 08:22:48 - stockManagementLogger - INFO - Starting StockManagement App
+2025-01-27 08:22:48 - stockManagementLogger - INFO - Application started
+2025-01-27 08:23:30 - stockManagementLogger - INFO - Starting StockManagement App
+2025-01-27 08:23:30 - stockManagementLogger - INFO - Application started
+2025-01-27 08:25:55 - stockManagementLogger - INFO - Application shutting down
+2025-01-27 08:25:57 - stockManagementLogger - INFO - Starting StockManagement App
+2025-01-27 08:25:57 - stockManagementLogger - INFO - Application started
+2025-01-27 08:26:07 - stockManagementLogger - INFO - Application shutting down
+2025-01-27 08:26:11 - stockManagementLogger - INFO - Starting StockManagement App
+2025-01-27 08:26:11 - stockManagementLogger - INFO - Application started
+2025-01-27 08:27:03 - stockManagementLogger - INFO - Application shutting down
+2025-01-27 08:27:05 - stockManagementLogger - INFO - Starting StockManagement App
+2025-01-27 08:27:05 - stockManagementLogger - INFO - Application started
+2025-01-27 08:27:14 - stockManagementLogger - INFO - Application shutting down
+2025-01-27 08:27:17 - stockManagementLogger - INFO - Starting StockManagement App
+2025-01-27 08:27:17 - stockManagementLogger - INFO - Application started
+2025-01-27 08:28:33 - stockManagementLogger - INFO - Application shutting down
+2025-01-27 08:28:34 - stockManagementLogger - INFO - Starting StockManagement App
+2025-01-27 08:28:35 - stockManagementLogger - INFO - Application started
+2025-01-27 08:28:44 - stockManagementLogger - INFO - Application shutting down
+2025-01-27 08:28:45 - stockManagementLogger - INFO - Starting StockManagement App
+2025-01-27 08:28:46 - stockManagementLogger - INFO - Application started
+2025-01-27 08:31:41 - stockManagementLogger - INFO - Application shutting down
+2025-01-27 08:33:01 - stockManagementLogger - INFO - Starting StockManagement App
+2025-01-27 08:33:01 - stockManagementLogger - INFO - Application started
+2025-01-27 08:37:46 - stockManagementLogger - INFO - Starting StockManagement App
+2025-01-27 08:37:46 - stockManagementLogger - INFO - Application started
+2025-01-27 08:40:13 - stockManagementLogger - INFO - Starting StockManagement App
+2025-01-27 08:40:13 - stockManagementLogger - INFO - Application started
+2025-01-27 09:23:28 - stockManagementLogger - INFO - Starting StockManagement App
+2025-01-27 09:23:28 - stockManagementLogger - INFO - Application started
+2025-01-27 09:25:59 - stockManagementLogger - INFO - Starting StockManagement App
+2025-01-27 09:25:59 - stockManagementLogger - INFO - Application started
+2025-01-27 09:27:33 - stockManagementLogger - INFO - Starting StockManagement App
+2025-01-27 09:27:33 - stockManagementLogger - INFO - Application started
+2025-01-27 09:29:19 - stockManagementLogger - INFO - Starting StockManagement App
+2025-01-27 09:29:19 - stockManagementLogger - INFO - Application started
+2025-01-27 09:33:04 - stockManagementLogger - INFO - Application shutting down
+2025-01-27 09:33:06 - stockManagementLogger - INFO - Starting StockManagement App
+2025-01-27 09:33:06 - stockManagementLogger - INFO - Application started
+2025-01-27 09:33:24 - authManagementLogger - INFO - Successful login for user: admin_user
+2025-01-27 09:33:24 - authManagementLogger - INFO - Role 'admin' has the following permissions: {'VIEW_STOCKS', 'VIEW_REPORTS', 'VALIDATE_ORDERS', 'UPDATE_STOCKS', 'DELETE_USERS', 'CREATE_USERS', 'MANAGE_PERMISSIONS', 'EDIT_USERS', 'VIEW_USERS'}
+2025-01-27 09:33:24 - authManagementLogger - INFO - Generated JWT token for user: admin_user
+2025-01-27 09:33:24 - authManagementLogger - INFO - Access token generated for user: admin_user
+2025-01-27 09:36:33 - stockManagementLogger - INFO - Application shutting down
+2025-01-27 09:36:35 - stockManagementLogger - INFO - Starting StockManagement App
+2025-01-27 09:36:35 - stockManagementLogger - INFO - Application started
+2025-01-27 09:38:29 - authManagementLogger - INFO - Successful login for user: admin_user
+2025-01-27 09:38:29 - authManagementLogger - INFO - Role 'admin' has the following permissions: {'MANAGE_PERMISSIONS', 'CREATE_USERS', 'VIEW_STOCKS', 'VIEW_REPORTS', 'UPDATE_STOCKS', 'VIEW_USERS', 'DELETE_USERS', 'VALIDATE_ORDERS', 'EDIT_USERS'}
+2025-01-27 09:38:29 - authManagementLogger - INFO - Generated JWT token for user: admin_user
+2025-01-27 09:38:29 - authManagementLogger - INFO - Access token generated for user: admin_user
+2025-01-27 09:45:01 - stockManagementLogger - INFO - Application shutting down
+2025-01-27 09:45:03 - stockManagementLogger - INFO - Starting StockManagement App
+2025-01-27 09:45:03 - stockManagementLogger - INFO - Application started
+2025-01-27 09:45:26 - authManagementLogger - INFO - Successful login for user: admin_user
+2025-01-27 09:45:26 - authManagementLogger - INFO - Role 'admin' has the following permissions: {'EDIT_USERS', 'VIEW_REPORTS', 'MANAGE_PERMISSIONS', 'CREATE_USERS', 'VIEW_STOCKS', 'VIEW_USERS', 'VALIDATE_ORDERS', 'UPDATE_STOCKS', 'DELETE_USERS'}
+2025-01-27 09:45:26 - authManagementLogger - INFO - Generated JWT token for user: admin_user
+2025-01-27 09:45:26 - authManagementLogger - INFO - Access token generated for user: admin_user
+2025-01-27 09:49:50 - stockManagementLogger - INFO - Application shutting down
+2025-01-27 09:49:52 - stockManagementLogger - INFO - Starting StockManagement App
+2025-01-27 09:49:52 - stockManagementLogger - INFO - Application started
+2025-01-27 09:50:16 - authManagementLogger - INFO - Successful login for user: admin_user
+2025-01-27 09:50:16 - authManagementLogger - INFO - Role 'admin' has the following permissions: {'UPDATE_STOCKS', 'EDIT_USERS', 'DELETE_USERS', 'CREATE_USERS', 'VIEW_USERS', 'MANAGE_PERMISSIONS', 'VIEW_REPORTS', 'VIEW_STOCKS', 'VALIDATE_ORDERS'}
+2025-01-27 09:50:16 - authManagementLogger - INFO - Generated JWT token for user: admin_user
+2025-01-27 09:50:16 - authManagementLogger - INFO - Access token generated for user: admin_user
+2025-01-27 09:52:17 - stockManagementLogger - INFO - Application shutting down
+2025-01-27 09:52:19 - stockManagementLogger - INFO - Starting StockManagement App
+2025-01-27 09:52:19 - stockManagementLogger - INFO - Application started
+2025-01-27 09:52:51 - authManagementLogger - INFO - Successful login for user: admin_user
+2025-01-27 09:52:51 - authManagementLogger - INFO - Role 'admin' has the following permissions: {'UPDATE_STOCKS', 'VIEW_USERS', 'VIEW_REPORTS', 'VALIDATE_ORDERS', 'CREATE_USERS', 'DELETE_USERS', 'VIEW_STOCKS', 'EDIT_USERS', 'MANAGE_PERMISSIONS'}
+2025-01-27 09:52:51 - authManagementLogger - INFO - Generated JWT token for user: admin_user
+2025-01-27 09:52:51 - authManagementLogger - INFO - Access token generated for user: admin_user
+2025-01-27 09:53:54 - stockManagementLogger - INFO - Application shutting down
+2025-01-27 09:53:56 - stockManagementLogger - INFO - Starting StockManagement App
+2025-01-27 09:53:56 - stockManagementLogger - INFO - Application started
+2025-01-27 09:54:10 - authManagementLogger - INFO - Successful login for user: admin_user
+2025-01-27 09:54:10 - authManagementLogger - INFO - Role 'admin' has the following permissions: {'VALIDATE_ORDERS', 'VIEW_STOCKS', 'UPDATE_STOCKS', 'EDIT_USERS', 'VIEW_USERS', 'VIEW_REPORTS', 'DELETE_USERS', 'MANAGE_PERMISSIONS', 'CREATE_USERS'}
+2025-01-27 09:54:10 - authManagementLogger - INFO - Generated JWT token for user: admin_user
+2025-01-27 09:54:10 - authManagementLogger - INFO - Access token generated for user: admin_user
+2025-01-27 10:00:58 - stockManagementLogger - INFO - Starting StockManagement App
+2025-01-27 10:00:58 - stockManagementLogger - INFO - Application started
+2025-01-27 10:04:21 - authManagementLogger - INFO - Successful login for user: clerk_user
+2025-01-27 10:04:21 - authManagementLogger - INFO - Role 'clerk' has the following permissions: {'VALIDATE_ORDERS', 'UPDATE_STOCKS', 'VIEW_STOCKS'}
+2025-01-27 10:04:21 - authManagementLogger - INFO - Generated JWT token for user: clerk_user
+2025-01-27 10:04:21 - authManagementLogger - INFO - Access token generated for user: clerk_user
+2025-01-27 10:07:34 - stockManagementLogger - INFO - Starting StockManagement App
+2025-01-27 10:07:34 - stockManagementLogger - INFO - Application started
+2025-01-27 10:07:54 - authManagementLogger - INFO - Successful login for user: admin_user
+2025-01-27 10:07:54 - authManagementLogger - INFO - Role 'admin' has the following permissions: {'DELETE_USERS', 'VIEW_USERS', 'EDIT_USERS', 'VIEW_REPORTS', 'VIEW_STOCKS', 'VALIDATE_ORDERS', 'MANAGE_PERMISSIONS', 'CREATE_USERS', 'UPDATE_STOCKS'}
+2025-01-27 10:07:54 - authManagementLogger - INFO - Generated JWT token for user: admin_user
+2025-01-27 10:07:54 - authManagementLogger - INFO - Access token generated for user: admin_user
+2025-01-27 10:12:47 - stockManagementLogger - INFO - Starting StockManagement App
+2025-01-27 10:12:48 - stockManagementLogger - INFO - Application started
+2025-01-27 10:13:38 - authManagementLogger - INFO - Successful login for user: admin_user
+2025-01-27 10:13:38 - authManagementLogger - INFO - Role 'admin' has the following permissions: {'VIEW_STOCKS', 'VIEW_REPORTS', 'MANAGE_PERMISSIONS', 'UPDATE_STOCKS', 'CREATE_USERS', 'VALIDATE_ORDERS', 'DELETE_USERS', 'EDIT_USERS', 'VIEW_USERS'}
+2025-01-27 10:13:38 - authManagementLogger - INFO - Generated JWT token for user: admin_user
+2025-01-27 10:13:38 - authManagementLogger - INFO - Access token generated for user: admin_user
+2025-01-27 10:16:23 - stockManagementLogger - INFO - Starting StockManagement App
+2025-01-27 10:16:23 - stockManagementLogger - INFO - Application started
+2025-01-27 10:16:58 - authManagementLogger - INFO - Successful login for user: admin_user
+2025-01-27 10:16:58 - authManagementLogger - INFO - Role 'admin' has the following permissions: {'CREATE_USERS', 'MANAGE_PERMISSIONS', 'UPDATE_STOCKS', 'VALIDATE_ORDERS', 'DELETE_USERS', 'VIEW_REPORTS', 'EDIT_USERS', 'VIEW_STOCKS', 'VIEW_USERS'}
+2025-01-27 10:16:58 - authManagementLogger - INFO - Generated JWT token for user: admin_user
+2025-01-27 10:16:58 - authManagementLogger - INFO - Access token generated for user: admin_user
+2025-01-27 10:17:20 - stockManagementLogger - INFO - Starting StockManagement App
+2025-01-27 10:17:21 - stockManagementLogger - INFO - Application started
+2025-01-27 10:19:25 - stockManagementLogger - INFO - Starting StockManagement App
+2025-01-27 10:19:25 - stockManagementLogger - INFO - Application started
+2025-01-27 10:20:04 - authManagementLogger - INFO - Successful login for user: admin_user
+2025-01-27 10:20:04 - authManagementLogger - INFO - Role 'admin' has the following permissions: {'MANAGE_PERMISSIONS', 'EDIT_USERS', 'VIEW_STOCKS', 'DELETE_USERS', 'CREATE_USERS', 'VIEW_USERS', 'VALIDATE_ORDERS', 'UPDATE_STOCKS', 'VIEW_REPORTS'}
+2025-01-27 10:20:04 - authManagementLogger - INFO - Generated JWT token for user: admin_user
+2025-01-27 10:20:04 - authManagementLogger - INFO - Access token generated for user: admin_user
+2025-01-27 10:22:31 - stockManagementLogger - INFO - Starting StockManagement App
+2025-01-27 10:22:31 - stockManagementLogger - INFO - Application started
+2025-01-27 10:23:25 - authManagementLogger - INFO - Successful login for user: admin_user
+2025-01-27 10:23:25 - authManagementLogger - INFO - Role 'admin' has the following permissions: {'VIEW_REPORTS', 'MANAGE_PERMISSIONS', 'VIEW_STOCKS', 'UPDATE_STOCKS', 'VIEW_USERS', 'VALIDATE_ORDERS', 'DELETE_USERS', 'CREATE_USERS', 'EDIT_USERS'}
+2025-01-27 10:23:25 - authManagementLogger - INFO - Generated JWT token for user: admin_user
+2025-01-27 10:23:25 - authManagementLogger - INFO - Access token generated for user: admin_user
+2025-01-27 10:23:30 - authManagementLogger - INFO - Token decoded successfully for user: admin_user (ID: 1)
+2025-01-27 10:23:30 - userManagementLogger - INFO - Fetching user info for user_id: 1
+2025-01-27 10:28:13 - stockManagementLogger - INFO - Starting StockManagement App
+2025-01-27 10:28:13 - stockManagementLogger - INFO - Application started
+2025-01-27 10:28:27 - authManagementLogger - INFO - Successful login for user: admin_user
+2025-01-27 10:28:27 - authManagementLogger - INFO - Role 'admin' has the following permissions: {'VIEW_USERS', 'VIEW_STOCKS', 'UPDATE_STOCKS', 'EDIT_USERS', 'DELETE_USERS', 'CREATE_USERS', 'VALIDATE_ORDERS', 'VIEW_REPORTS', 'MANAGE_PERMISSIONS'}
+2025-01-27 10:28:27 - authManagementLogger - INFO - Generated JWT token for user: admin_user
+2025-01-27 10:28:27 - authManagementLogger - INFO - Access token generated for user: admin_user
+2025-01-27 10:28:34 - authManagementLogger - INFO - Token decoded successfully for user: admin_user (ID: 1)
+2025-01-27 10:28:34 - categoryManagementLogger - INFO - Fetching all categories for user_id: 1, skip=0, limit=100
+2025-01-27 10:31:27 - stockManagementLogger - INFO - Starting StockManagement App
+2025-01-27 10:31:27 - stockManagementLogger - INFO - Application started
+2025-01-27 10:31:56 - authManagementLogger - INFO - Successful login for user: admin_user
+2025-01-27 10:31:56 - authManagementLogger - INFO - Role 'admin' has the following permissions: {'MANAGE_PERMISSIONS', 'VALIDATE_ORDERS', 'VIEW_USERS', 'UPDATE_STOCKS', 'CREATE_USERS', 'VIEW_STOCKS', 'DELETE_USERS', 'VIEW_REPORTS', 'EDIT_USERS'}
+2025-01-27 10:31:56 - authManagementLogger - INFO - Generated JWT token for user: admin_user
+2025-01-27 10:31:56 - authManagementLogger - INFO - Access token generated for user: admin_user
+2025-01-27 10:32:02 - roleManagementLogger - INFO - Fetched 5 roles
+2025-01-27 10:43:00 - stockManagementLogger - INFO - Starting StockManagement App
+2025-01-27 10:43:01 - stockManagementLogger - INFO - Application started
+2025-01-27 10:43:44 - authManagementLogger - INFO - Successful login for user: admin_user
+2025-01-27 10:43:44 - authManagementLogger - INFO - Role 'admin' has the following permissions: {'VIEW_STOCKS', 'MANAGE_PERMISSIONS', 'VALIDATE_ORDERS', 'VIEW_USERS', 'EDIT_USERS', 'DELETE_USERS', 'UPDATE_STOCKS', 'VIEW_REPORTS', 'CREATE_USERS'}
+2025-01-27 10:43:44 - authManagementLogger - INFO - Generated JWT token for user: admin_user
+2025-01-27 10:43:44 - authManagementLogger - INFO - Access token generated for user: admin_user
+2025-01-27 10:43:48 - DependencyLogger - INFO - Token decoded successfully for user: admin_user (ID: 1)
+2025-01-27 10:43:48 - roleManagementLogger - INFO - Fetched 5 roles
+2025-01-27 10:43:59 - DependencyLogger - INFO - Token decoded successfully for user: admin_user (ID: 1)
+2025-01-27 10:43:59 - categoryManagementLogger - INFO - Fetching all categories for user_id: 1, skip=0, limit=100
